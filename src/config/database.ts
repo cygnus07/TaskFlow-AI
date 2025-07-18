@@ -31,7 +31,7 @@ export const connectDB =async (): Promise<void> => {
         })
 
         mongoose.connection.on('disconnected', () => {
-            console.log("Mongodb disconnected")
+            console.log("Mongodb disconnected here")
             isConnected=false
         })
 

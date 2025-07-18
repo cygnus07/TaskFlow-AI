@@ -1,5 +1,6 @@
 import { createApp } from "./app.js"
 import { config } from './config/index.js'
+import { connectDB } from "./config/database.js"
 
 process.on('uncaughtException', (error: Error) => {
     console.log("Uncaught Exception: ", error)
@@ -14,6 +15,8 @@ process.on('unhandledRejection', (error: Error ) => {
 
 const startServer = async () => {
     try {
+
+        await connectDB()
         const app = createApp()
         const server = app.listen(config.port, () => {
             console.log(`

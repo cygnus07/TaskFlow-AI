@@ -23,7 +23,7 @@ export const config = {
         uri: envVars.MONGODB_URI,
         options: {
             maxPoolSize: 10,
-            serverSelectionTimeout: 5000,
+            // serverSelectionTimeout: 5000,
         },
     },
     jwt: {
