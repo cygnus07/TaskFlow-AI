@@ -1,0 +1,39 @@
+{
+  "name": "taskflow-ai",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+  "dev": "nnodemon --watch src --exec node --loader ts-node/esm src/server.ts",
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "lint": "eslint src/**/*.ts",
+  "format": "prettier --write src/**/*.ts"
+},
+  "keywords": [],
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.16.4",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.0.14",
+    "eslint": "^9.31.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
