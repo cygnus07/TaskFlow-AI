@@ -16,7 +16,8 @@ const startServer = async () => {
     try {
         const app = createApp()
         const server = app.listen(config.port, () => {
-            console.log(`Server is runnning
+            console.log(`
+                Server is runnning
                 Environment: ${config.env}
                 URL: http://localhost:${config.port}
                 Health Check: http://localhost:${config.port}/health
