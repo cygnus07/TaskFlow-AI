@@ -11,7 +11,7 @@ export const connectDB =async (): Promise<void> => {
         console.log("There is already an existing mongodb connection")
         return
     }
-
+    
     // create a event listener for db connected
     // create a event listener for db errror
     // create a event listener for db disconnected
@@ -24,6 +24,7 @@ export const connectDB =async (): Promise<void> => {
             console.log("Mongodb connected successfully")
             isConnected=true
         })
+
 
         mongoose.connection.on('error', (error: Error) => {
             console.error("Mongodb connection error", error)
