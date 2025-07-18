@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "dev": "nnodemon --watch src --exec node --loader ts-node/esm src/server.ts",
-  "build": "tsc",
-  "start": "node dist/server.js",
-  "lint": "eslint src/**/*.ts",
-  "format": "prettier --write src/**/*.ts"
-},
+    "dev": "nnodemon --watch src --exec node --loader ts-node/esm src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
+  },
   "keywords": [],
   "type": "module",
   "author": "",
@@ -22,7 +22,8 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.16.4",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
