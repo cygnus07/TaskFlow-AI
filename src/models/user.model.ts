@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose'
 import bcrypt from 'bcryptjs'
-import { addTenantIsolation, IBaseDocument } from './base.model'
+import { addTenantIsolation, IBaseDocument } from './base.model.js'
 
 export interface IUser extends IBaseDocument {
     email: string
