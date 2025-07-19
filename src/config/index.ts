@@ -13,6 +13,8 @@ const envSchema = z.object({
 
 })
 
+
+
 // to parse and validate the envs
 const envVars = envSchema.parse(process.env)
 
