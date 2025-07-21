@@ -11,7 +11,7 @@ export interface JWTPayload {
     userId: string
     tenantId: string
     email: string
-    name: string
+    role: string
 }
 
 // api resposne structure
