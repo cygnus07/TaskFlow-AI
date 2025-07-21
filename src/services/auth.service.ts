@@ -1,5 +1,5 @@
 import { IUser } from "../models/user.model.js"
-import { ConflictError } from "../utils/errors.js"
+import { AuthenticationError, ConflictError } from "../utils/errors.js"
 import { User } from "../models/user.model.js"
 import { Tenant } from "../models/tenant.model.js"
 import { JWTUtil } from "../utils/jwt.utils.js"
@@ -10,6 +10,11 @@ export interface RegisterData {
     password: string,
     name: string,
     companyName: string
+}
+
+export interface LoginData {
+    email: string
+    password: string
 }
 
 export interface AuthResponse {
@@ -70,5 +75,64 @@ export class AuthService {
             await Tenant.deleteOne({ _id: tenant._id})
             throw error
         }
+    }
+
+    static async login(data: LoginData) : Promise<AuthResponse> {
+        // get the email and password from data
+        // find the user by email
+            // include the refreshToken and password fields
+            // if user not found throw authenticationError
+        // compare the passwords
+        // check if user is inactive if not throw error
+        // find tenant by user.tenantId 
+            // if not found or inactive throw error
+        // update user.lastLogin = new DAte()
+        // generate a new access token 
+            // payload - userId, tenantId, email, role
+        // generate a new refresh TOken
+        // push the new refreshToken into user.refreshTOkens
+            // keep th eonly last 5 refresh tokesn to limit sessions
+        // save the user
+        // return {user, token, refreshToken}
+
+        const {email, password} = data
+        const user = await User.findOne({ email }).select('+refreshTokens, password')
+        if(!user) {
+            throw new AuthenticationError('User not found')
+        }
+
+        const isValidPassword = await user.comparePassword(password)
+        if(!isValidPassword){
+            throw new AuthenticationError("Invalid credentials")
+        }
+
+        if(!user.isActive){
+            throw new AuthenticationError('Account is deacctivated')
+        }
+
+        const tenant = await Tenant.findById(user.tenantId)
+        if(!tenant || !tenant.isActive) {
+            throw new AuthenticationError('Organization is not active')
+        }
+
+        user.lastLogin = new Date()
+
+        const token = JWTUtil.generateToken({
+            userId: (user._id as any).toString(),
+            tenantId: (user.tenantId as any).toString(),
+            email: user.email,
+            role: user.role,
+        })
+
+        const refreshToken = JWTUtil.generateRefreshToken((user._id as any).toString())
+
+        user.refreshTokens.push(refreshToken)
+        if(user.refreshTokens.length > 5){
+            user.refreshTokens = user.refreshTokens.slice(-5)
+        }
+
+        await user.save()
+
+        return { user, token, refreshToken}
     }
 }
