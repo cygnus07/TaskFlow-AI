@@ -1,6 +1,5 @@
-import { IUser } from "../models/user.model.js"
 import { AuthenticationError, ConflictError } from "../utils/errors.js"
-import { User } from "../models/user.model.js"
+import { User, IUser } from "../models/user.model.js"
 import { Tenant } from "../models/tenant.model.js"
 import { JWTUtil } from "../utils/jwt.utils.js"
 
@@ -9,7 +8,7 @@ export interface RegisterData {
     email: string,
     password: string,
     name: string,
-    companyName: string
+    companyName?: string
 }
 
 export interface LoginData {
@@ -96,7 +95,7 @@ export class AuthService {
         // return {user, token, refreshToken}
 
         const {email, password} = data
-        const user = await User.findOne({ email }).select('+refreshTokens, password')
+        const user = await User.findOne({ email }).select('+refreshTokens +password')
         if(!user) {
             throw new AuthenticationError('User not found')
         }
@@ -134,5 +133,75 @@ export class AuthService {
         await user.save()
 
         return { user, token, refreshToken}
+    }
+
+    static async logout(userId: string, refreshToken?: string): Promise<void> {
+        // find the user by userId and include refreshTokens
+          // if user not found return silently, no error
+
+        // if a specific refreshToken is given, remove that only
+        // if not, then clear the entire user.refreshTOkens aray i.e. logout from al ldevices
+        // save the user
+
+        const user = await User.findById(userId).select('+refreshTokens')
+        if(!user) return
+
+        if(refreshToken){
+            user.refreshTokens = user.refreshTokens.filter(rt => rt !== refreshToken)
+        } else {
+            user.refreshTokens = []
+        }
+
+        await user.save()
+    }
+
+    static async refreshToken(refreshToken: string) : Promise<Omit<AuthResponse, 'user'>> {
+        // verify the given refreshTOken using verifyToken
+            // if invalid throw authenticationError
+
+        // check if decoded payload has userId and type === 'refresh'
+            // if not throw new AuthenticationError
+
+        // find the user by decoded.userId
+            // include refreshTokens field
+
+        // check if the given refreshTOken exists in user.refreshTOkens
+            // if not throw authenticationerror
+
+        // generate a new accessToken 
+            // payload - userId, tenantId, email, role
+        
+        // generate a new refresh TOken
+
+        // replace the old refreshToken
+            // remove th eold token and push th enew one
+
+        // save the user and 
+        // return token and refreshToken
+
+        const decoded = JWTUtil.verifyToken(refreshToken)
+        if(!decoded.userId){
+            throw new AuthenticationError('Invalid Refresh Token')
+        }
+
+        const user = await User.findById(decoded.userId).select('+refreshTokens')
+        if(!user || !user.refreshTokens.includes(refreshToken)){
+            throw new AuthenticationError('Invalid Refresh Token')
+        }
+
+        const newToken = JWTUtil.generateToken({
+            userId: (user._id as any).toString(),
+            tenantId: (user.tenantId as any).toString(),
+            email: user.email,
+            role: user.role
+        })
+
+        const newRefreshToken = JWTUtil.generateRefreshToken((user._id as any).toString())
+
+        user.refreshTokens = user.refreshTokens.filter(rt => rt !== refreshToken)
+        await user.save()
+
+        return { token: newToken, refreshToken: newRefreshToken}
+
     }
 }
