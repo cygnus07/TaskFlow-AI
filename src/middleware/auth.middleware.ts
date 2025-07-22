@@ -20,11 +20,14 @@ export const authenticate = async (
     // verify the tenant with user's tenant
     // attach user & tenant id to request 
 
+    // console.log("I was here")
+
     try {
         const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '')
         if(!token){
             throw new AuthenticationError('token not provided')
         }
+        // console.log(token)
 
         const decoded = JWTUtil.verifyToken(token)
         const user =await User.findById(decoded.userId).select('+refreshTokens')
@@ -39,6 +42,8 @@ export const authenticate = async (
 
         req.user = user
         req.tenantId= decoded.tenantId
+
+        next()
 
     } catch (error) {
         if(error instanceof jwt.JsonWebTokenError){

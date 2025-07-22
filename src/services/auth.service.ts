@@ -36,7 +36,7 @@ export class AuthService {
         // in catch block delete the tenant(rollback) and throw error
         const { email, password, name, companyName } = data
         const existingUser = await User.findOne({ email })
-        if(!existingUser) {
+        if(existingUser) {
             throw new ConflictError('Email already registered')
         }
         const tenant = await Tenant.create({
