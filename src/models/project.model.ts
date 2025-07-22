@@ -113,6 +113,7 @@ const projectSchema = new Schema<IProject> ({
     }
 })
 
+
 addTenantIsolation(projectSchema)
 
 
