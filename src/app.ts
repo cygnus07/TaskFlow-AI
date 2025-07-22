@@ -5,6 +5,8 @@ import {config} from './config/index.js'
 import cookieParser from 'cookie-parser'
 import compression from 'compression'
 import morgan from 'morgan'
+import routes from './routes/index.js'
+import { errorHandler } from './middleware/error.middleware.js'
 
 
 
@@ -33,6 +35,7 @@ export const createApp = (): Application => {
     }) 
 
     // api routes
+    app.use('/api', routes)
 
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction ) => {
         console.error(err.stack)
@@ -43,6 +46,9 @@ export const createApp = (): Application => {
             : err.message
         })
     })
+
+    // global error handler
+    app.use(errorHandler)
 
     return app
 }
