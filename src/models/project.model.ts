@@ -125,7 +125,7 @@ projectSchema.index({ createdAt: -1, tenantId: 1})
 // to check that endDate must be after startDate
 projectSchema.pre('save', function(next) {
     if(this.startDate && this.endDate && this.endDate < this.startDate){
-        next(new Error('End date must be after start date'))
+        return next(new Error('End date must be after start date'))
     }
     next()
 })
