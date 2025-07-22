@@ -1,3 +1,4 @@
+import { Query } from "mongoose";
 import { IProject, Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
 import { NotFoundError } from "../utils/errors";
@@ -42,5 +43,48 @@ export class ProjectService {
         })
 
         return project
+    }
+
+    static async findAll(
+        tenantId: string,
+        userId: string,
+        filters?: {
+            status?: string
+            priority: string
+            search?: string
+        }
+    ) : Promise<IProject[]> {
+
+        // start query with { tenantId }
+        // add $or condition so user only sees projects where 
+        // either user is the owner or user is in members.user
+
+        // apply filters
+        // query project.find with the queries
+        // return the list of projects
+
+        const query: any = { tenantId }
+
+        query.$or = [
+            { owner: userId },
+            { 'members.user': userId},
+        ]
+
+        if(filters?.status){
+            query.status = filters.status
+        }
+        if(filters?.priority){
+            query.priority = filters.priority
+        }
+        if(filters?.search){
+            query.name = { $regex: filters.search, $options: 'i'}
+        }
+
+        const projects = await Project.find(query)
+        .populate('owner', 'name email')
+        .populate('members.user', 'name email')
+        .sort({ createdAt: -1})
+
+        return projects
     }
 }
