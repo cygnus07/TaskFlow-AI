@@ -1,4 +1,4 @@
-import { NextFunction } from "express";
+import { NextFunction, Response } from "express";
 import { AuthRequest } from "../types/index.js";
 import jwt from 'jsonwebtoken'
 import { AuthenticationError, AuthorizationError } from "../utils/errors.js";
