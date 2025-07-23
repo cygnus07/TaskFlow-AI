@@ -1,7 +1,6 @@
-import { Query } from "mongoose";
 import { IProject, Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
-import { NotFoundError } from "../utils/errors";
+import { AuthorizationError, NotFoundError } from "../utils/errors";
 
 
 interface createProjectData {
@@ -86,5 +85,33 @@ export class ProjectService {
         .sort({ createdAt: -1})
 
         return projects
+    }
+
+    static async findById(
+        projectId: string,
+        tenantId: string,
+        userId: string
+    ) : Promise<IProject> {
+        // find project by _id and tenantId
+        // populate owner and members.user
+        // if not found throw Notfounderror
+        // check if the user is a member of the project
+        // by using project.isMember(userId)
+        // if not throw authorization error
+        // return the project
+
+        const project = await Project.findOne({_id: projectId, tenantId})
+        .populate('owner', 'name email')
+        .populate('members.user', 'name email')
+
+        if(!project){
+            throw new NotFoundError('Project not found')
+        }
+
+        if(!project.isMember(userId)){
+            throw new AuthorizationError('You do not have access to this project')
+        }
+
+        return project
     }
 }

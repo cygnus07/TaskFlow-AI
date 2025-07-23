@@ -135,7 +135,7 @@ projectSchema.pre('save', function(next) {
 projectSchema.methods.isMember = function(userId: string) : boolean {
     return this.members.some((member: any) => 
     member.user.toString() === userId ||
-    this.owner.toString() === userId
+    this.owner.toString() === userId 
 ) 
 }
 
