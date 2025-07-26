@@ -105,5 +105,34 @@ export class ProjectController {
         }
     }
 
+    static async update (req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // extract projecId from route req.params
+            const {id} = req.params
+            
+            // extract updated data from req.body
+            const updates = req.body
+
+            // call ProjectService.update to modify project
+            // pass project id, updates, userId and tenantId
+
+            const project = await ProjectService.update(
+                id,
+                updates,
+                req.user!._id.toString(),
+                req.tenantId!,
+            )
+
+            // sebd success response with udpated project
+            res.json({
+                success: true,
+                data: {project},
+                message: 'Project updated successfully'
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
 
 }
