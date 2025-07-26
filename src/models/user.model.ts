@@ -1,8 +1,9 @@
-import { Schema, model } from 'mongoose'
+import { Schema, Types, model } from 'mongoose'
 import bcrypt from 'bcryptjs'
 import { addTenantIsolation, IBaseDocument } from './base.model.js'
 
 export interface IUser extends IBaseDocument {
+    _id: Types.ObjectId
     email: string
     password: string
     name: string
