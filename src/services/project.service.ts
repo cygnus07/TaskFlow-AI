@@ -53,7 +53,7 @@ export class ProjectService {
         userId: string,
         filters?: {
             status?: string
-            priority: string
+            priority?: string
             search?: string
         }
     ) : Promise<IProject[]> {

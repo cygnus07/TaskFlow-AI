@@ -77,4 +77,33 @@ export class ProjectController {
             next(error)
         }
     }
+
+    static async findById(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // extract projectId from route paramters
+            // get id from req.params
+
+            const {id} = req.params
+
+            // call ProjectService.findById to get single project
+            // pass project id, tenatndId , and userId from req
+
+            const project = await ProjectService.findById(
+                id,
+                req.tenantId!,
+                req.user!._id.toString(),
+            )
+
+            // send success response with project data
+
+            res.json({
+                success: true,
+                data: { project }
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+
 }
