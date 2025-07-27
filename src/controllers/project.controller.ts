@@ -156,5 +156,64 @@ export class ProjectController {
         }
     }
 
+    static async addMember(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get id from req.params
+            // get email and role from req.body
+            const {id} = req.params
+            const { email, role } = req.body
+
+            // validate if email is missing 
+            if(!email){
+                throw new ValidationError('Email is required')
+            }
+
+            // call ProjectService.addMember to add new member
+            // pass project id, email, role, userId, and tenantId
+
+            const project = await ProjectService.addMember(
+                id,
+                email,
+                role,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                data: {project},
+                message: "Member added successfully"
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static async removeMember(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the project id and memberId from req.params
+            // call the ProjectService.removeMember 
+            // pass the project id, userId, tenantId
+            // send success response wiith message
+
+            const {id, memberId} = req.params
+
+            const project = await ProjectService.removeMember(
+                id,
+                memberId,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                data: {project},
+                message: "Member removed successfully"
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
 
 }
