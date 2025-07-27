@@ -1,6 +1,5 @@
 import { model, Schema, Types } from "mongoose";
 import { addTenantIsolation, IBaseDocument } from "./base.model.js";
-import { NextFunction } from "express";
 
 
 export interface ITask extends IBaseDocument{
@@ -46,6 +45,11 @@ export interface ITask extends IBaseDocument{
         lastAnalyzedAt?: Date
     }
 
+}
+
+interface TaskDependency {
+    taskId: Types.ObjectId,
+    type: 'blocks' | 'blocked-by'
 }
 
 const taskSchema = new Schema<ITask>({
@@ -227,6 +231,31 @@ taskSchema.pre('save', function(next) {
     next()
 })
 
+taskSchema.virtual('subtasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'parentTaskId'
+})
 
+taskSchema.methods.canStart = async function() : Promise<boolean> {
+    const blockingDeps = await this.model('Task').find({
+        _id: { $in: (this.dependecies as TaskDependency[]).filter(d => d.type === 'blocked-by').map(d => d.taskId)},
+        status: {$ne: 'done'},
+    })
+
+    return blockingDeps === 0
+}
+
+taskSchema.methods.getAllSubtasks = async function() : Promise<ITask[]> {
+    const subtasks = await this.model('Task').find({ parentTaskId: this._id})
+    const allSubtasks = [...subtasks]
+
+    for(const subtask of subtasks){
+        const nestedSubtasks= await subtask.getAllsubTasks()
+        allSubtasks.push(...nestedSubtasks)
+    }
+
+    return allSubtasks
+}
 
 export const task = model<ITask>('Task', taskSchema)
