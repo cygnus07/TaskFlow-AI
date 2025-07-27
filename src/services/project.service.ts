@@ -1,6 +1,6 @@
 import { IProjectDocument, IProject, Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
-import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "../utils/errors";
+import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "../utils/errors.js";
 
 
 interface createProjectData {
@@ -56,7 +56,7 @@ export class ProjectService {
             priority?: string
             search?: string
         }
-    ) : Promise<IProject[]> {
+    ) : Promise<IProjectDocument[]> {
 
         // start query with { tenantId }
         // add $or condition so user only sees projects where 
@@ -88,6 +88,8 @@ export class ProjectService {
         .populate('members.user', 'name email')
         .sort({ createdAt: -1})
 
+        console.log(projects)
+
         return projects
     }
 
@@ -111,6 +113,8 @@ export class ProjectService {
         if(!project){
             throw new NotFoundError('Project not found')
         }
+        console.log(project)
+        console.log(project.members)
 
         if(!project.isMember(userId)){
             throw new AuthorizationError('You do not have access to this project')

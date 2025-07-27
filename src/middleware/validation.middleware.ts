@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ValidationError } from "../utils/errors";
+import { ValidationError } from "../utils/errors.js";
 
 
 export const validateProjectInput = (

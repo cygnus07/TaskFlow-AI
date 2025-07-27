@@ -1,5 +1,5 @@
 import { Document, model, Schema, Types } from "mongoose";
-import { addTenantIsolation, IBaseDocument } from "./base.model";
+import { addTenantIsolation, IBaseDocument } from "./base.model.js";
 
 export interface IProjectMethods {
     isMember(userId: string): boolean,
@@ -140,10 +140,20 @@ projectSchema.pre('save', function(next) {
 
 // to check if user is a member
 projectSchema.methods.isMember = function(userId: string) : boolean {
-    return this.members.some((member: any) => 
-    member.user.toString() === userId ||
-    this.owner.toString() === userId 
-) 
+
+    // console.log('Checking membership for:', userId);
+    // console.log('Owner:', this.owner.toString());
+    // console.log('Members:', this.members.map((m: any) => m.user.toString()));
+
+    const ownerId = this.owner._id ? this.owner._id.toString() : this.owner.toString()
+
+    if(ownerId === userId){
+        return true
+    }
+    return this.members.some((member: any) =>
+        member.user.toString() === userId
+    );
+
 }
 
 
