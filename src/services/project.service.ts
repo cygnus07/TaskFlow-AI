@@ -1,4 +1,4 @@
-import { IProject, Project } from "../models/project.model.js";
+import { IProjectDocument, IProject, Project } from "../models/project.model.js";
 import { User } from "../models/user.model.js";
 import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "../utils/errors";
 
@@ -95,7 +95,7 @@ export class ProjectService {
         projectId: string,
         tenantId: string,
         userId: string
-    ) : Promise<IProject> {
+    ) : Promise<IProjectDocument> {
         // find project by _id and tenantId
         // populate owner and members.user
         // if not found throw Notfounderror

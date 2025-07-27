@@ -1,10 +1,10 @@
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ValidationError } from "../utils/errors";
 
 
 export const validateProjectInput = (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction
 ) => {
     const { name, startDate, endDate } = req.body

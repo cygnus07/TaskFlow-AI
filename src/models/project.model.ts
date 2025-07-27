@@ -1,5 +1,10 @@
-import { model, Schema, Types } from "mongoose";
+import { Document, model, Schema, Types } from "mongoose";
 import { addTenantIsolation, IBaseDocument } from "./base.model";
+
+export interface IProjectMethods {
+    isMember(userId: string): boolean,
+    getMemberRole(userId: string): string | null
+}
 
 
 export interface IProject extends IBaseDocument {
@@ -26,12 +31,14 @@ export interface IProject extends IBaseDocument {
         lastActivityAt: Date
     }
 
+    progress: number
+
 }
 
 
+export interface IProjectDocument extends IProject, IProjectMethods, Document {}
 
-
-const projectSchema = new Schema<IProject> ({
+const projectSchema = new Schema<IProjectDocument> ({
     name: {
         type: String,
         required: [true, 'Project name is required'],
@@ -54,7 +61,7 @@ const projectSchema = new Schema<IProject> ({
     prioprity: {
         type: String,
         enum: {
-            values: ['low', 'medium', 'high', 'priority'],
+            values: ['low', 'medium', 'high', 'urgent'],
             message: 'invalid priority level'
         },
         default: 'medium'
@@ -157,4 +164,4 @@ projectSchema.virtual('progress').get(function() {
 })
 
 
-export const Project = model<IProject>('Project', projectSchema)
+export const Project = model<IProjectDocument>('Project', projectSchema)
