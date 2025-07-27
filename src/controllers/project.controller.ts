@@ -134,5 +134,27 @@ export class ProjectController {
         }
     }
 
+    static async delete (req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get project id from req.params
+            // call ProjectService.delete to remove project
+            // pass project id, userId, and tenantId
+            // send success reposne 
+            const { id } = req.params
+            await ProjectService.delete(
+                id,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                message: "Project deleted successfully"
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
 
 }
