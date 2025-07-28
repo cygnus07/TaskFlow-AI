@@ -1,0 +1,179 @@
+import {  Response, NextFunction } from "express";
+import { AuthRequest } from "../types/index.js";
+import { ValidationError } from "../utils/errors.js";
+import { TaskService } from "../services/task.service.js";
+
+
+
+export class TaskController {
+    static async create(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            // get the projectId from url params
+            
+            // get the task data from req.body
+            // validate the required fields
+
+            // call TaskService.create()
+            // return success response with 201 code
+            // send the task data 
+
+            const { projectId } = req.params
+            const {
+                parentTaskId,
+                title,
+                description,
+                priority,
+                dueDate,
+                startDate,
+                estimatedHours,
+                assignees,
+                tags
+            } = req.body
+
+            if(!title){
+                throw new ValidationError('Title is required')
+            }
+
+            const task = TaskService.create({
+                projectId,
+                parentTaskId,
+                title,
+                description,
+                priority,
+                dueDate,
+                startDate,
+                estimatedHours,
+                assignees,
+                tags
+            },
+            req.user!._id.toString(),
+            req.tenantId!
+        )
+
+        res.status(201).json({
+            success: true,
+            data: { task },
+            message: 'Task created successfully'
+        })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static async findByProject(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the projectId from url params
+
+            // get the filter options from query params
+            // status, assignee, parentTaskId, search
+
+            // call TaskService.findByProject()  with
+            // projectId, userId, tenanatId
+
+            // return success response with
+            // tasks array and count of tasks
+
+            const { projectId } = req.params
+            const { status, assignee, parentTaskId, search} = req.query
+
+            const tasks = await TaskService.findByProject(
+                projectId,
+                req.user!._id.toString(),
+                req.tenantId!,
+                {
+                    status: status as string,
+                    assignee: assignee as string,
+                    parentTaskId: parentTaskId as string,
+                    search: search as string,
+                }
+            )
+
+            res.json({
+                success: true,
+                data: {
+                    tasks,
+                    count: tasks.length
+                },
+
+            })
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static async findById(req: AuthRequest, res: Response, next: NextFunction){
+        // get the taskId from url params
+        // call TaskService.findById() with
+        // taskId, userId and tenantId
+        // send the success response with task data
+
+        try {
+            const { taskId } = req.params
+            const task = TaskService.findById(
+                taskId,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                data: { task }
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static async update(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the taskId form req.params
+            // get all update data from req body
+
+            // call TaskService.update with
+            // taskId, updates object, userId and tenantId
+
+            // send the response with updated task data
+
+            const { taskId } = req.params
+            const updates = req.body // could be any combination of task fields
+
+            const updatedTask  = TaskService.update(
+                taskId,
+                updates,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                data: { updatedTask},
+                message: "task updated successfully"
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static async delete(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the task id 
+            // call TaskService.delete with 
+            // taskid, userId, and tenantId
+            // send the success respons with message
+            const { id } = req.params
+            TaskService.delete(
+                id,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                message: 'Task deleted succesfully'
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+}
