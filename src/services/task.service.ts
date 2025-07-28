@@ -1,4 +1,3 @@
-import { getPriority } from "os"
 import { Project } from "../models/project.model.js"
 import { ITask, Task } from "../models/task.model.js"
 import { User } from "../models/user.model.js"
@@ -200,6 +199,180 @@ export class TaskService {
          }
 
          return task
+    }
+
+    static async update(
+        taskId: string,
+        data: UpdateTaskData,
+        userId: string,
+        tenantId: string
+    ): Promise<ITask> {
+        // find the task by taskId and tenantId
+        // verify it and if not throw NotFoundError
+
+        // find the project that has the task
+        // check if is user is a project member or not
+        // throw auth error if not
+
+        // compare current task values with new data
+        // buiild the changes object
+
+        // apply all changes from data to task
+        // add acitivity log entry 
+        // save teh task
+
+        // update project stats
+        // return updated task and populate assignees and paretnTaskId
+
+        const task = await Task.findOne({ 
+            _id: taskId,
+            tenantId
+        })
+        if(!task){
+            throw new NotFoundError('Task not found')
+        }
+
+        const project = await Project.findOne({
+            _id: task.projectId,
+            tenantId
+        })
+        if(!project || !project.isMember(userId)){
+            throw new AuthorizationError('Access denied for this task')
+        }
+
+        const changes: any = {}
+        Object.keys(data).forEach(key => {
+            if(task[key] !== data[key]){
+                changes[key] = { from: task[key], to: data[key]}
+            }
+        })
+
+        Object.assign(task,data)
+
+        if(Object.keys(changes).length >0 ){
+            task.activityLog.push({
+                user: userId,
+                action: 'updated',
+                details: changes,
+                timestamp: new Date()
+            })
+        }
+
+        await task.save()
+
+        if(changes.status){
+            await this.updateProjectTaskCounts(task.projectId.toString(), tenantId)
+        }
+
+        return task.populate(['assignees', 'parentTaskId'])
+
+
+
+    }
+
+    static async delete(
+        taskId: string,
+        userId: string,
+        tenantId: string
+    ): Promise<void> {
+        // find the task by taskId and tenantId
+        // check if task exists or not
+
+        // find the project using task
+        // check if it exists and the user is a member and a manager
+        // if not throw auth error
+
+        // check for subtasks
+        // count documents where parentTaskId equals this taskId
+        // throw validation error if subtasks exists
+
+        // cleanup dependecides
+        // remove this task from other tasks dependecies arrays
+        // update all task taht have this tas as a dependecy
+
+        //  delete the task
+
+        // update project stats
+
+        const task = await Task.findOne({ 
+            _id: taskId,
+            tenantId
+        })
+        if(!task){
+            throw new NotFoundError(('Tsk not found'))
+        }
+
+        const project = await Project.findOne({
+            _id: task.projectId,
+            tenantId
+        })
+
+        if(!project){
+            throw new NotFoundError('Project not found')
+        }
+        const userRole = project.getMemberRole(userId)
+        if(userRole !== 'manager'){
+            throw new AuthorizationError('Only manager can delete the task')
+        }
+
+        const subtaskCount = await Task.countDocuments({
+            parentTaskId: taskId,
+            tenantId
+        })
+
+        if(subtaskCount >0){
+            throw new ValidationError('Cannot delete tasks with subtasks')
+        }
+
+        await Task.updateMany(
+            { 'dependecies.taskId': taskId},
+            { $pull: { dependecies: {taskId}}}
+        )
+
+        await task.deleteOne()
+
+        await this.updateProjectTaskCounts(task.projectId.toString(), tenantId)
+
+
+
+
+    }
+
+
+    private static async updateProjectTaskCounts(
+        projectId: string,
+        tenantId: string
+    ): Promise<void> {
+        // count different task categores
+            // count total tasks for this project
+            // count completed tasks for this
+            // count overdue tasks (not done + dueDAte < currentDaate)
+            // user Promise.all() to run all counts simultaneously
+
+        // update project metadata
+            // update project document with new counts
+        
+        const [totalTasks, completedTasks, overdueTasks] = await Promise.all([
+            Task.countDocuments({ projectId, tenantId}),
+            Task.countDocuments({ projectId, tenantId, status: 'done'}),
+            Task.countDocuments({
+                projectId,
+                tenantId,
+                status: { $ne: 'done'},
+                dueDate: { $lt: new Date()}
+            })
+        ])
+
+        await Project.updateOne(
+            {_id: projectId},
+            {
+                'metadata.totalTasks': totalTasks,
+                'metadata.completedTasks': completedTasks,
+                'metadata.overdueTasks': overdueTasks,
+                'metadata.lastActivityAt': new Date()
+            }
+        )
+
     }
 
 
