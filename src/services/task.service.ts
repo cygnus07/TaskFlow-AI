@@ -325,7 +325,7 @@ export class TaskService {
         }
 
         await Task.updateMany(
-            { 'dependecies.taskId': taskId},
+            { 'dependencies.taskId': taskId},
             { $pull: { dependecies: {taskId}}}
         )
 
@@ -337,6 +337,76 @@ export class TaskService {
 
 
     }
+
+   static async addDependency(
+    taskId: string,
+    dependencyTaskId: string,
+    type: 'blocks' | 'blocked-by',
+    userId: string,
+    tenantId: string
+   ): Promise<ITask> {
+        // validate self dependency
+        // check if both the taskId and dependency TaskId are equal
+        // if not throw validation error
+
+        // find both tasks using promise.all
+        //  throw now founderror if not found
+
+        // validate if they both belong to same project
+        // if not throw validation error
+
+        // check for circular dependencies
+        // user helper mehtod wouldCreateCircularDependency
+        // throw validation eror if circular dependency is created
+
+        // add dependency if does not exists
+        // add activity llog entry and save the task
+
+        // return the task with dependencies.taskId
+
+        if(taskId === dependencyTaskId){
+            throw new ValidationError('Task cannot be same as dependecy task')
+        }
+
+        const [task, dependencyTask] = await Promise.all([
+            Task.findOne({ _id: taskId, tenantId}),
+            Task.findOne({ _id: dependencyTaskId, tenantId})
+        ])
+
+        if(!task || !dependencyTask){
+            throw new NotFoundError('Tasks not found')
+        }
+
+        if(task.projectId.toString() !== dependencyTask.projectId.toString()){
+            throw new ValidationError('Task and dependency do nto belong to same project')
+        }
+
+        if(await this.wouldCreateCircularDependency(taskId, dependencyTaskId, tenantId)){
+            throw new ValidationError('Task cannot be assinged as dependency to itself')
+        }
+
+        const exists = task.dependecies.some(
+            d => d.taskId.toString() === dependencyTaskId && d.type === type
+        )
+
+        if(!exists){
+            task.dependecies.push({ taskId: dependencyTaskId, type})
+
+            task.activityLog.push({
+                user: userId,
+                action: 'dependency_added',
+                details: { dependencyTaskId, type},
+                timestamp: new Date()
+            })
+
+            await task.save()
+        }
+
+        return task.populate('dependencies.taskId')
+
+
+   }
+
 
 
     private static async updateProjectTaskCounts(
@@ -373,6 +443,23 @@ export class TaskService {
             }
         )
 
+    }
+
+    private static async wouldCreateCircularDependency(
+        taskId: string,
+        dependencyTaskId: string,
+        tenantId: string
+    ): Promise<boolean> {
+        const dependencyTask = await Task.findOne({
+            _id: dependencyTaskId,
+            tenantId
+        })
+
+        if(!dependencyTask) return false
+
+        return dependencyTask.dependecies.some(
+            d => d.taskId.toString() === taskId
+        )
     }
 
 
