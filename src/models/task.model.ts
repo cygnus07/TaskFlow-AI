@@ -258,4 +258,4 @@ taskSchema.methods.getAllSubtasks = async function() : Promise<ITask[]> {
     return allSubtasks
 }
 
-export const task = model<ITask>('Task', taskSchema)
+export const Task = model<ITask>('Task', taskSchema)
