@@ -295,4 +295,40 @@ export class TaskController {
             next(error)
         }
     }
+
+    static async getSubtasks(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the task id 
+            // verify that parent task exists and user has access
+            // using TaskService.findByid 
+
+            // get subtasks by calling findByProject with
+            // projectId, userId, tenantId
+
+            // send the success response
+            const { id }= req.params
+            await TaskService.findById(
+                id,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            const subtasks = await TaskService.findByProject(
+                req.params.projectId || '',
+                req.user!._id.toString(),
+                req.tenantId!,
+                { parentTaskId: id}
+            )
+
+            res.json({
+                success: true,
+                data: {
+                    subtasks,
+                    count: subtasks.length
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
 }
