@@ -176,4 +176,123 @@ export class TaskController {
             next(error)
         }
     }
+
+    static async updateStatus(req: AuthRequest, res: Response, next: NextFunction){
+        // get the task id 
+        // get the status from req body
+        // validate the status if not validation error
+        //call TaskService.update() with
+        // taskId, only status field, userId, and tenantId
+        // send the response with updated task data
+
+       try {
+         const { id } = req.params
+         const { status } = req.body
+         if(!status){
+             throw new ValidationError('Status is required')
+         }
+         const task = TaskService.update(
+             id,
+             { status },
+             req.user!._id.toString(),
+             req.tenantId!
+         )
+ 
+         res.json({
+             success: true,
+             message: 'Task status updated successfully'
+         })
+       } catch (error) {
+            next(error)
+       }
+    }
+
+    static async addDependency(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the task id
+            // get dependencyTaskId and type from body
+            // type is 'blocks' by default
+            // validate dependencyTaskId and if not val error
+            // call TaskService.addDependency with
+            // taskId, dependencyTaskId, type and user and tenant id
+            const { id } = req.params
+            const { dependencyTaskId, type = 'blocks' } = req.body
+            if(!dependencyTaskId){
+                throw new ValidationError('Dependency task id is required')
+            }
+            
+            const task = TaskService.addDependency(
+                id,
+                dependencyTaskId,
+                type,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                data: { task },
+                message: 'Dependency added successfully'
+
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static async removeDependency(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the taskId and dependencyId form req.params
+            // call TaskService.removeDependency 
+            // send response with udpated task data
+
+            const { id, dependencyId} = req.params
+            const task = TaskService.removeDependency(
+                id,
+                dependencyId,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                data: {task },
+                message: 'Dependency removed successfully'
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    static async addComment(req: AuthRequest, res: Response, next: NextFunction){
+        try {
+            // get the task id
+            // get the comment frm req body
+            // validate that text is provided
+            // call TaskService.addComment
+            // send response with updated task
+
+            const { id } =req.params
+            const { comment } =req.body
+
+            if(!comment){
+                throw new ValidationError('Comment is required')
+            }
+
+            const task = TaskService.addComment(
+                id,
+                comment,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            res.json({
+                success: true,
+                data: {task},
+                message: "comment added successfully"
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
 }
