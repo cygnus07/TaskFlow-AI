@@ -1,3 +1,4 @@
+import { Types } from "mongoose"
 import { Project } from "../models/project.model.js"
 import { ITask, Task } from "../models/task.model.js"
 import { User } from "../models/user.model.js"
@@ -242,8 +243,8 @@ export class TaskService {
 
         const changes: any = {}
         Object.keys(data).forEach(key => {
-            if(task[key] !== data[key]){
-                changes[key] = { from: task[key], to: data[key]}
+            if((task as any)[key] !== (data as any)[key]){
+                changes[key] = { from: (task as any) [key], to: (task as any) [key]}
             }
         })
 
@@ -251,7 +252,7 @@ export class TaskService {
 
         if(Object.keys(changes).length >0 ){
             task.activityLog.push({
-                user: userId,
+                user: new Types.ObjectId(userId),
                 action: 'updated',
                 details: changes,
                 timestamp: new Date()
@@ -390,10 +391,10 @@ export class TaskService {
         )
 
         if(!exists){
-            task.dependecies.push({ taskId: dependencyTaskId, type})
+            task.dependecies.push({ taskId: new Types.ObjectId(dependencyTaskId), type})
 
             task.activityLog.push({
-                user: userId,
+                user: new Types.ObjectId(userId),
                 action: 'dependency_added',
                 details: { dependencyTaskId, type},
                 timestamp: new Date()
@@ -435,7 +436,7 @@ export class TaskService {
     )
 
     task.activityLog.push({
-        user: userId,
+        user: new Types.ObjectId(userId),
         action: 'dependency_removed',
         details: { dependencyTaskId },
         timestamp: new Date()
@@ -468,13 +469,13 @@ export class TaskService {
         }
 
         task.comments.push({
-            user: userId,
+            user: new Types.ObjectId(userId),
             text,
             createdAt: new Date()
         })
 
         task.activityLog.push({
-            user: userId,
+            user: new Types.ObjectId(userId),
             action: 'commented_added',
             timestamp: new Date()
         })
