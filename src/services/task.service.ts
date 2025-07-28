@@ -1,3 +1,4 @@
+import { getPriority } from "os"
 import { Project } from "../models/project.model.js"
 import { ITask, Task } from "../models/task.model.js"
 import { User } from "../models/user.model.js"
@@ -104,4 +105,102 @@ export class TaskService {
 
 
     }
+
+    static async findByProject(
+        projectId: string,
+        userId: string,
+        tenantId: string,
+        filters?: {
+            status?: string
+            assignee?: string
+            parentTaskId?: string | null
+            search?: string
+        }
+    ): Promise<ITask[]> {
+        // verify project access
+            // find project using projectId and tenantId
+            // check if the user is a project member
+            // if not throw auth error
+        
+        // BUild query filters
+            // start with base query and add status filter if given
+            // add assignee, parentTaskId and search filters if given
+
+        // Execute query with population
+            // find tasks with built query
+            // populate assignees 
+            // populate parentTaskId
+            // sort by priority, dueDate, createdAt
+
+        // return tasks array
+        const project = await Project.findOne({ 
+            _id: projectId,
+             tenantId})
+        if(!project || !project.isMember(userId)){
+            throw new AuthorizationError('Access denied to this project')
+        }
+
+        const query: any = { projectId, tenantId}
+        if(filters?.status) query.status = filters.status
+        if(filters?.assignee) query.assignees = filters.assignee
+        if(filters?.parentTaskId) query.parentTaskId = filters?.parentTaskId
+        if(filters?.search){
+            query.$or = [
+                { title: { $regex: filters.search, $options: 'i'} },
+                { description: { $regex: filters.search, $options: 'i'}} 
+            ]
+        }
+
+        const tasks = await Task.find(query)
+        .populate('assignees', 'name email')
+        .populate('parentTaskId', 'title')
+        .sort({ priority: -1, dueDate: 1, createdAt: -1})
+
+        return tasks
+    }
+
+    static async findById(
+        taskId: string,
+        userId: string,
+        tenantId: string
+    ): Promise<ITask> {
+        // FInd task by taskId and tenantId
+        // populate assigness (name, email)
+        // populate parentTaskID (title)
+        // populate dependencies.taskId (title, status)
+        // populate commenst.user (name)
+        // populate activityLog.user (name)
+
+        // check if task exists
+
+        // verify project access
+        // check if the user exists in project members
+
+        const task = await Task.findOne({
+            _id: taskId,
+            tenantId
+        })
+        .populate('assignees', 'name email')
+        .populate('parentTaskId', 'title')
+        .populate('dependencies.taskId', 'title status')
+        .populate('comments.user', 'name')
+        .populate('activityLog.user', 'name')
+
+        if(!task){
+            throw new NotFoundError('Task not found')
+        }
+
+        const project = await Project.findOne({
+            _id: task.projectId,
+            tenantId
+         })
+
+         if(!project || !project.isMember(userId)){
+            throw new AuthorizationError('Acees denied for this task')
+         }
+
+         return task
+    }
+
+
 }
