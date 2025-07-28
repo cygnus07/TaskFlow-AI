@@ -34,7 +34,7 @@ export class TaskController {
                 throw new ValidationError('Title is required')
             }
 
-            const task = TaskService.create({
+            const task = await TaskService.create({
                 projectId,
                 parentTaskId,
                 title,
@@ -109,9 +109,9 @@ export class TaskController {
         // send the success response with task data
 
         try {
-            const { taskId } = req.params
-            const task = TaskService.findById(
-                taskId,
+            const { id } = req.params
+            const task = await TaskService.findById(
+                id,
                 req.user!._id.toString(),
                 req.tenantId!
             )
@@ -135,11 +135,11 @@ export class TaskController {
 
             // send the response with updated task data
 
-            const { taskId } = req.params
+            const { id } = req.params
             const updates = req.body // could be any combination of task fields
 
-            const updatedTask  = TaskService.update(
-                taskId,
+            const task  = await TaskService.update(
+                id,
                 updates,
                 req.user!._id.toString(),
                 req.tenantId!
@@ -147,7 +147,7 @@ export class TaskController {
 
             res.json({
                 success: true,
-                data: { updatedTask},
+                data: { task},
                 message: "task updated successfully"
             })
         } catch (error) {
@@ -162,7 +162,7 @@ export class TaskController {
             // taskid, userId, and tenantId
             // send the success respons with message
             const { id } = req.params
-            TaskService.delete(
+           await TaskService.delete(
                 id,
                 req.user!._id.toString(),
                 req.tenantId!
@@ -191,7 +191,7 @@ export class TaskController {
          if(!status){
              throw new ValidationError('Status is required')
          }
-         const task = TaskService.update(
+         const task = await TaskService.update(
              id,
              { status },
              req.user!._id.toString(),
@@ -200,6 +200,7 @@ export class TaskController {
  
          res.json({
              success: true,
+             data: {task},
              message: 'Task status updated successfully'
          })
        } catch (error) {
@@ -221,7 +222,7 @@ export class TaskController {
                 throw new ValidationError('Dependency task id is required')
             }
             
-            const task = TaskService.addDependency(
+            const task = await TaskService.addDependency(
                 id,
                 dependencyTaskId,
                 type,
@@ -247,7 +248,7 @@ export class TaskController {
             // send response with udpated task data
 
             const { id, dependencyId} = req.params
-            const task = TaskService.removeDependency(
+            const task = await TaskService.removeDependency(
                 id,
                 dependencyId,
                 req.user!._id.toString(),
@@ -273,15 +274,15 @@ export class TaskController {
             // send response with updated task
 
             const { id } =req.params
-            const { comment } =req.body
+            const { text } =req.body
 
-            if(!comment){
+            if(!text){
                 throw new ValidationError('Comment is required')
             }
 
-            const task = TaskService.addComment(
+            const task = await TaskService.addComment(
                 id,
-                comment,
+                text,
                 req.user!._id.toString(),
                 req.tenantId!
             )
