@@ -1,7 +1,7 @@
 import { Project } from "../models/project.model.js"
 import { ITask, Task } from "../models/task.model.js"
 import { User } from "../models/user.model.js"
-import { AuthorizationError, NotFoundError, ValidationError } from "../utils/errors"
+import { AuthorizationError, NotFoundError, ValidationError } from "../utils/errors.js"
 
 
 export interface createTaskData {
@@ -405,6 +405,82 @@ export class TaskService {
         return task.populate('dependencies.taskId')
 
 
+   }
+
+   static async removeDependency(
+    taskId: string,
+    dependencyTaskId: string,
+    userId: string,
+    tenantId: string
+   ): Promise<ITask> {
+
+    // find and verify task
+    // remove dependency from array
+        // filter out the dependency from task.dependencies array
+        // match by dependencyTaskId
+    
+    // add activity log
+        // with dependency_removed, details and user and timestamp
+
+    // save and return the updated task and 
+    // populate dependencies.taskId
+
+    const task = await Task.findOne({_id: taskId, tenantId})
+    if(!task){
+        throw new NotFoundError('Task not found')
+    }
+
+    task.dependecies = task.dependecies.filter(
+        d => d.taskId.toString() !== dependencyTaskId
+    )
+
+    task.activityLog.push({
+        user: userId,
+        action: 'dependency_removed',
+        details: { dependencyTaskId },
+        timestamp: new Date()
+    })
+
+    await task.save()
+    return task.populate('dependencies.taskId')
+
+
+
+
+
+   }
+
+   static async addComment(
+        taskId: string,
+        text: string,
+        userId: string,
+        tenantId: string,
+   ): Promise<ITask> {
+        // find and verify task
+        // add comment to array task.comments
+        // add acitivity log
+        // save and return the updated task
+        // populate comments.user (name)
+
+        const task = await Task.findOne({_id: taskId, tenantId})
+        if(!task){
+            throw new NotFoundError('task not found')
+        }
+
+        task.comments.push({
+            user: userId,
+            text,
+            createdAt: new Date()
+        })
+
+        task.activityLog.push({
+            user: userId,
+            action: 'commented_added',
+            timestamp: new Date()
+        })
+
+        await task.save()
+        return task.populate('comments.user')
    }
 
 
