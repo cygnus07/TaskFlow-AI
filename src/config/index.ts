@@ -9,7 +9,10 @@ const envSchema = z.object({
     PORT: z.string().transform(Number).default(3000),
     MONGODB_URI: z.string().startsWith('mongodb').url(),
     JWT_SECRET: z.string().min(32),
-    JWT_EXPIRE: z.string().default('7d')
+    JWT_EXPIRE: z.string().default('7d'),
+    OPENAI_API_KEY : z.string().optional(),
+    OPENAI_MODEL: z.string().default('gpt-4-turbo-preview'),
+    AI_FEATURES_ENABLED: z.string().transform( val => val === 'true').default(false),
 
 })
 
@@ -38,6 +41,11 @@ export const config = {
         : 'http://localhost:3001',
         credentials: true
     },
+    ai: {
+        enabled: envVars.AI_FEATURES_ENABLED,
+        openaiApiKey: envVars.OPENAI_API_KEY,
+        model: envVars.OPENAI_MODEL
+    }
 
 }as const
 
