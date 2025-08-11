@@ -310,4 +310,95 @@ export class AIService {
 
 
     }
+
+    static async analyzeProjectHealth(
+        project: IProject,
+        tasks: ITask[]
+    ): Promise<{
+        healthScore: number
+        risks: string[]
+        recommendations: string[]
+        metrics: {
+            velocityTrend: 'increasing' | 'stable' | 'decreasing'
+            burndownRate: number
+            bottlenecks: string[]
+        }
+
+    }>{
+        // get the openai client
+        // calculate project metrics
+        // package project data for ai
+        // build analysis prompt 
+        // call openai api
+        // return the health analysis object
+        const client = this.getClient()
+        const completedTasks = tasks.filter(t => t.status === 'done')
+        const overdueTasks = tasks.filter(t => 
+            t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'done'
+        )
+        const blockedTasks = tasks.filter( t => 
+            t.dependecies.some( d => d.type === 'blocked-by')
+        )
+
+        const projectData = {
+            name: project.name,
+            status: project.status,
+            totalTasks: tasks.length,
+            completedTasks: completedTasks.length,
+            overdueTasks: overdueTasks.length,
+            blockedTasks: blockedTasks.length,
+            teamSize: project.members.length,
+            daysActive: Math.floor(
+                (new Date().getTime() - new Date(project.createdAt).getTime()) / (1000 * 60*60*24)
+            )
+        }
+
+        const prompt = `
+    Analyze the health of this project and provide insights.
+    
+    Project Data:
+    ${JSON.stringify(projectData, null, 2)}
+    
+    Task Distribution:
+    - To Do: ${tasks.filter(t => t.status === 'todo').length}
+    - In Progress: ${tasks.filter(t => t.status === 'in-progress').length}
+    - Review: ${tasks.filter(t => t.status === 'review').length}
+    - Done: ${tasks.filter(t => t.status === 'done').length}
+    
+    Provide:
+    1. Health score (0-100)
+    2. Top 3-5 risks
+    3. Top 3-5 recommendations
+    4. Metrics including velocity trend, burndown rate, and bottlenecks
+    
+    Be specific and actionable in your recommendations.
+    Respond in JSON format.
+    `
+
+    try {
+        const completion = await client.chat.completions.create({
+            model: config.ai.model,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a project health analysis AI that provides actionable insights'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.7,
+            response_format: { type: 'json_object'}
+        })
+        const response = completion.choices[0].message.content
+        if(!response){
+            throw new Error('No response from AI')
+        }
+        return JSON.parse(response)
+    } catch (error) {
+        console.error('AI analysis error: ', error)
+        throw new AppError('Failed to analyze project health', 500)
+    }
+    }
 }
