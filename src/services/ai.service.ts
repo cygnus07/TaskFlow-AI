@@ -231,4 +231,83 @@ export class AIService {
             throw new AppError('Failed to generate schedule with AI', 500)
         }
     }
+
+    static async suggestNextTasks(
+        completedTask: ITask,
+        projectTasks: ITask[],
+        project: IProject
+    ): Promise<{
+    suggestedTasks: Array<{
+      title: string;
+      description: string;
+      priority: string;
+      estimatedHours: number;
+      reasoning: string;
+    }>;
+  }> {
+        // get the openai client
+
+        // build the prompt
+        // call openai api
+        // parse the json response 
+        // return the suggested tasks
+
+        const client = this.getClient()
+
+        const prompt = `
+    Based on the completed task, suggest logical follow-up tasks.
+    
+    Completed Task:
+    - Title: ${completedTask.title}
+    - Description: ${completedTask.description}
+    - Tags: ${completedTask.tags.join(', ')}
+    
+    Project Context:
+    - Name: ${project.name}
+    - Current Tasks: ${projectTasks.length}
+    - Project Status: ${project.status}
+    
+    Existing Tasks (to avoid duplicates):
+    ${projectTasks.map(t => t.title).join('\n')}
+    
+    Suggest 2-3 follow-up tasks that would logically come next.
+    For each suggestion, provide:
+    1. Task title
+    2. Brief description
+    3. Priority level
+    4. Estimated hours
+    5. Reasoning why this task makes sense
+    
+    Respond with JSON format.
+    `;
+
+    try {
+        const completion = await client.chat.completions.create({
+            model: config.ai.model,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a project management AI that suggests logical follow-up tasks',
+                },
+                {
+                    role: 'user',
+                    content: prompt,
+                }
+            ],
+            temperature: 0.8,
+            response_format: { type: 'json_object'}
+        })
+
+        const response = completion.choices[0].message.content
+        if(!response){
+            throw new Error('No response from AI')
+        }
+        return JSON.parse(response)
+    } catch (error) {
+        console.error('AI suggestion error:', error)
+        throw new AppError('Failed to generate task suggestions', 500)
+    }
+
+
+    }
 }
