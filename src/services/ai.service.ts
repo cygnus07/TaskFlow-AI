@@ -13,6 +13,15 @@ interface TaskPrioritizationResult {
     estimatedComplexity: number
 }
 
+interface SchedulingRecommendation {
+    taskId: string
+    recommendedStartDate: Date
+    recommendedAssignees: string[]
+    worloadBalance: number
+    conflicts: string[]
+    reasoning: string
+}
+
 export class AIService {
     private static openai: OpenAI | null = null
     private static getClient(): OpenAI {
@@ -128,5 +137,98 @@ export class AIService {
         }
 
         
+    }
+
+    static async generateSchedule(
+        tasks: ITask[],
+        project: IProject,
+        taskMembers: any[]
+    ): Promise<SchedulingRecommendation[]>{
+        // get the openai client
+
+        // prepare the task data for scheduling
+        // build the scheduling prompt
+        // call openai api 
+        // parse response and handle different response structures
+        // return scheduling recommendations
+
+        const client = this.getClient()
+        const taskData = tasks.map(task => ({
+            id: String(task._id),
+            title: task.title,
+            estimatedHours: task.estimatedHours,
+            priority: task.priority,
+            dependencies: task.dependecies.map(d => d.taskId.toString),
+            currentAssignees: task.assignees.map(a => a.toString()),
+            status: task.status,
+        }))
+
+        const memberData = taskMembers.map(member => ({
+            id: member._id.toString(),
+            name: member.name,
+            role: member.role,
+            currentTasks: tasks.filter(t => 
+                t.assignees.some(a => a.toString() === member._id.toString()) &&
+                t.status !== 'done'
+            ).length,
+        }))
+
+
+          const prompt = `
+    As an AI scheduling expert, create an optimal schedule for the following tasks.
+    
+    Project: ${project.name}
+    Current Date: ${new Date().toISOString()}
+    
+    Tasks:
+    ${JSON.stringify(taskData, null, 2)}
+    
+    Team Members:
+    ${JSON.stringify(memberData, null, 2)}
+    
+    For each task, recommend:
+    1. Optimal start date
+    2. Best team member(s) to assign
+    3. Workload balance score (0-100, where 100 is perfectly balanced)
+    4. Any scheduling conflicts
+    5. Reasoning for the recommendation
+     Consider:
+    - Task dependencies (tasks can't start until dependencies are complete)
+    - Team member workload balance
+    - Task priority
+    - Estimated effort
+    - Skill matching based on roles
+    
+    Respond with JSON array of scheduling recommendations.
+    `
+
+        try {
+            const completion = await client.chat.completions.create({
+                model: config.ai.model,
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a scheduling AI that provides optimal task scheduling in JSON format',
+
+                    },
+                    {
+                        role: 'user',
+                        content: prompt,
+                    },
+                ],
+                temperature: 0.6,
+                response_format: { type: 'json_object'}
+            })
+
+            const response = completion.choices[0].message.content
+            if(!response){
+                throw new Error('No response from AI')
+            }
+            const result = JSON.parse(response)
+            return result.schedules || result.recommendations || result
+        } catch (error) {
+            console.error('AI scheduling error: ', error)
+            throw new AppError('Failed to generate schedule with AI', 500)
+        }
     }
 }
