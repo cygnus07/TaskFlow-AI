@@ -8,7 +8,8 @@ export interface RegisterData {
     email: string,
     password: string,
     name: string,
-    companyName?: string
+    companyName?: string,
+    role?: string
 }
 
 export interface LoginData {

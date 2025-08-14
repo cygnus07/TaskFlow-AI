@@ -44,6 +44,7 @@ export class ProjectService {
                 joinedAt: new Date(),
             }]
         })
+        console.log(project)
 
         return project
     }

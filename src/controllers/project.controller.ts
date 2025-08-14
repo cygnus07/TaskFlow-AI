@@ -30,6 +30,7 @@ export class ProjectController {
         )
         // send success response with 201 status
         // return project data with success message
+        // console.log(project)
 
         res.status(201).json({
             success: true,

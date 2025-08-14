@@ -31,6 +31,9 @@ export class AIController {
                 req.user!._id.toString()
             )
             const userRole = project.getMemberRole(req.user!._id.toString())
+
+            // console.log(userRole)
+            // console.log(req.user)
             if(userRole !== 'manager'){
                 throw new AuthorizationError('Only Project managers can use ai prioritization')
             }

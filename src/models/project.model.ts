@@ -11,7 +11,7 @@ export interface IProject extends IBaseDocument {
     name: string
     description: string
     status: 'planning' | 'active' | 'on-hold' | 'completed' | 'cancelled'
-    prioprity : 'low' | 'medium' | 'high' | 'urgent'
+    priority : 'low' | 'medium' | 'high' | 'urgent'
     startDate?: Date
     endDate?: Date
     owner: Types.ObjectId
@@ -58,7 +58,7 @@ const projectSchema = new Schema<IProjectDocument> ({
         },
         default: 'planning'
     },
-    prioprity: {
+    priority: {
         type: String,
         enum: {
             values: ['low', 'medium', 'high', 'urgent'],
