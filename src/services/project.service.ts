@@ -44,7 +44,6 @@ export class ProjectService {
                 joinedAt: new Date(),
             }]
         })
-        console.log(project)
 
         return project
     }
@@ -89,7 +88,7 @@ export class ProjectService {
         .populate('members.user', 'name email')
         .sort({ createdAt: -1})
 
-        console.log(projects)
+        
 
         return projects
     }
@@ -114,8 +113,6 @@ export class ProjectService {
         if(!project){
             throw new NotFoundError('Project not found')
         }
-        console.log(project)
-        console.log(project.members)
 
         if(!project.isMember(userId)){
             throw new AuthorizationError('You do not have access to this project')

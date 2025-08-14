@@ -28,7 +28,6 @@ export class AuthController {
             // send 201 json response
 
             const { email, password, name, companyName} = req.body
-            // console.log(req.body)
             if(!email || !password || !name ){
                 throw new ValidationError('Email, password and name are required')
             }

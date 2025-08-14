@@ -31,9 +31,9 @@ export class AIController {
                 req.user!._id.toString()
             )
             const userRole = project.getMemberRole(req.user!._id.toString())
+            
 
-            // console.log(userRole)
-            // console.log(req.user)
+            
             if(userRole !== 'manager'){
                 throw new AuthorizationError('Only Project managers can use ai prioritization')
             }
@@ -49,6 +49,10 @@ export class AIController {
             }
 
             const prioritizations = await AIService.prioritizeTasks(tasks, project)
+              if (!Array.isArray(prioritizations)) {
+                console.error('Prioritizations is not an array:', prioritizations)
+                throw new Error('Invalid prioritization response format')
+            }
 
             const updatedTasks = await Promise.all(
                 prioritizations.map(async (p) => {
@@ -56,7 +60,7 @@ export class AIController {
                         {_id: p.taskId, tenantId: req.tenantId},
                         {
                             $set: {
-                                'aiMetaData.suggestedPriority': p.suggestPriority,
+                                'aiMetaData.suggestedPriority': p.suggestedPriority,
                                 'aiMetaData.priorityScore': p.priorityScore,
                                 'aiMetaData.complexityScore': p.estimatedComplexity,
                                 'aiMetaData.suggestedDueDate': p.suggestedDueDate,
@@ -68,7 +72,7 @@ export class AIController {
                                     action: 'ai_prioritization',
                                     details: {
                                         oldPriority: tasks.find(t => String(t._id) === p.taskId)?.priority,
-                                        suggestedPriority: p.suggestPriority,
+                                        suggestedPriority: p.suggestedPriority,
                                         reasoning: p.reasoning,
                                     },
                                     timeStamp: new Date(),
@@ -87,7 +91,7 @@ export class AIController {
                     prioritizations: updatedTasks,
                     summary: {
                         tasksAnalyzed: tasks.length,
-                        highPriorityTasks: prioritizations.filter(p => p.suggestPriority === 'urgent' || p.suggestPriority === 'high').length
+                        highPriorityTasks: prioritizations.filter(p => p.suggestedPriority === 'urgent' || p.suggestedPriority === 'high').length
                     }
                 },
                 message: 'Tasks prioritized successfully with AI'
@@ -147,6 +151,7 @@ export class AIController {
                 project,
                 teamMembers
             )
+
 
             let appliedCount = 0
             if(applySchedule){
@@ -368,21 +373,21 @@ export class AIController {
 
             if(prioritize){
                 promises.push(
-                    this.runPrioritization(projectId, req.user!._id.toString(), req.tenantId!)
+                    AIController.runPrioritization(projectId, req.user!._id.toString(), req.tenantId!)
                     .then(result => { results.optimizations.prioritization = result})
                 )
             }
 
             if(schedule){
                 promises.push(
-                    this.runScheduling(projectId, req.tenantId!, project)
+                    AIController.runScheduling(projectId, req.tenantId!, project)
                     .then(result => { results.optimizations.scheduling = result})
                 )
             }
 
             if(analyzeHealth){
                 promises.push(
-                    this.runHealthAnalysis(projectId, req.user!._id.toString(), req.tenantId!, project)
+                    AIController.runHealthAnalysis(projectId, req.user!._id.toString(), req.tenantId!, project)
                     .then(result => { results.optimizations.runHealthAnalysis = result})
                 )
             }
@@ -410,7 +415,7 @@ export class AIController {
             tasksAnalyzed: tasks.length,
             priorityChanges: prioritizations.filter(p => {
                 const task = tasks.find(t => String(t._id) === p.taskId)
-                return task && task.priority !== p.suggestPriority
+                return task && task.priority !== p.suggestedPriority
             }).length
         }
     }

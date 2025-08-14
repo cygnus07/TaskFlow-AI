@@ -159,7 +159,8 @@ projectSchema.methods.isMember = function(userId: string) : boolean {
 
 // method to get member role
 projectSchema.methods.getMemberRole = function(userId: string) : string | null {
-    if(this.owner.toString() === userId) return 'manager'
+    // console.log(this.owner._id.toString())
+    if(this.owner._id.toString() === userId) return 'manager'
     const member = this.members.find((m: any) =>
     m.user.toString() === userId
 )

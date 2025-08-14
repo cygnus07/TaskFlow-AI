@@ -6,7 +6,7 @@ import { IProject } from '../models/project.model.js'
 
 interface TaskPrioritizationResult {
     taskId: string
-    suggestPriority: 'low' | 'medium' | 'high' | 'urgent'
+    suggestedPriority: 'low' | 'medium' | 'high' | 'urgent'
     priorityScore: number
     reasoning: string
     suggestedDueDate?: Date
@@ -130,7 +130,30 @@ export class AIService {
                 throw new Error('No response from AI')
             }
             const result = JSON.parse(response)
-            return result.prioritization || result
+
+
+            let prioritizations: TaskPrioritizationResult[]
+        
+                if (result.prioritizations && Array.isArray(result.prioritizations)) {
+                    prioritizations = result.prioritizations
+                } else if (Array.isArray(result)) {
+                    prioritizations = result
+                } else if (result.taskId) {
+                    prioritizations = [result]
+                } else {
+                    const arrayProp = Object.values(result).find(val => Array.isArray(val))
+                    if (arrayProp) {
+                        prioritizations = arrayProp as TaskPrioritizationResult[]
+                    } else {
+                        throw new Error('Invalid response format from AI')
+                    }
+                }
+            
+                if (prioritizations.length !== tasks.length) {
+                console.warn(`Expected ${tasks.length} prioritizations, got ${prioritizations.length}`)
+            }
+
+        return prioritizations
         } catch (error) {
             console.error('AI prioritization error: ', error)
             throw new AppError('Failed to prioritize tasks with AI', 500)
@@ -158,7 +181,7 @@ export class AIService {
             title: task.title,
             estimatedHours: task.estimatedHours,
             priority: task.priority,
-            dependencies: task.dependecies.map(d => d.taskId.toString),
+            dependencies: task.dependecies.map(d => d.taskId.toString()),
             currentAssignees: task.assignees.map(a => a.toString()),
             status: task.status,
         }))
@@ -225,7 +248,53 @@ export class AIService {
                 throw new Error('No response from AI')
             }
             const result = JSON.parse(response)
-            return result.schedules || result.recommendations || result
+            
+            let schedules: SchedulingRecommendation[]
+            
+            if (result.schedules && Array.isArray(result.schedules)) {
+                schedules = result.schedules
+            } else if (result.schedulingRecommendations && Array.isArray(result.schedulingRecommendations)) {
+                schedules = result.schedulingRecommendations.map((item: any) => ({
+                    taskId: item.taskId,
+                    recommendedStartDate: new Date(item.recommendedStartDate),
+                    recommendedAssignees: item.assignedTeamMembers || item.recommendedAssignees || [],
+                    workloadBalance: item.workloadBalanceScore || item.workloadBalance || 0,
+                    conflicts: Array.isArray(item.schedulingConflicts) ? item.schedulingConflicts : 
+                            (item.schedulingConflicts && item.schedulingConflicts !== 'None' ? [item.schedulingConflicts] : []),
+                    reasoning: item.reasoning
+                }))
+            } else if (result.recommendations && Array.isArray(result.recommendations)) {
+                schedules = result.recommendations
+            } else if (Array.isArray(result)) {
+                schedules = result
+            } else if (result.taskId) {
+                schedules = [result]
+            } else {
+                const arrayProp = Object.values(result).find(val => Array.isArray(val))
+                if (arrayProp) {
+                    schedules = arrayProp as SchedulingRecommendation[]
+                } else {
+                    throw new Error('Invalid response format from AI - no array found')
+                }
+            }
+
+            if (schedules.length !== tasks.length) {
+                console.warn(`Expected ${tasks.length} schedule recommendations, got ${schedules.length}`)
+            }
+
+            schedules = schedules.map(schedule => ({
+                ...schedule,
+                recommendedStartDate: schedule.recommendedStartDate instanceof Date ? 
+                    schedule.recommendedStartDate : new Date(schedule.recommendedStartDate),
+                recommendedAssignees: Array.isArray(schedule.recommendedAssignees) ? 
+                    schedule.recommendedAssignees : [],
+                workloadBalance: typeof schedule.workloadBalance === 'number' ? 
+                    schedule.workloadBalance : 0,
+                conflicts: Array.isArray(schedule.conflicts) ? 
+                    schedule.conflicts : []
+            }))
+
+            return schedules
         } catch (error) {
             console.error('AI scheduling error: ', error)
             throw new AppError('Failed to generate schedule with AI', 500)
