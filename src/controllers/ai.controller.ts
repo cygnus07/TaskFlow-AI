@@ -262,4 +262,60 @@ export class AIController {
             next(error)
         }
     }
+
+    static async analyzeProjectHealth(req: AuthRequest, res: Response, next: NextFunction){
+        // get the project id from url
+        // get project and verify user has access
+        // using ProjectService.findById
+        // get all project tasks using TaskService.findByProject
+
+        // call aiservice.analayzeprojecthealth 
+
+        // store the anlaysis result in project metaddat
+        // return response
+
+        try {
+            const {projectId} = req.params
+            const project = await ProjectService.findById(
+                projectId,
+                req.tenantId!,
+                req.user!._id.toString()
+
+            )
+
+            const tasks = await TaskService.findByProject(
+                projectId,
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            const analysis = await AIService.analyzeProjectHealth(project,tasks)
+
+            await project.updateOne({
+                $set: {
+                    'metadata.lastActivityAt': new Date(),
+                    'metadata.aiAnalysis': {
+                        healthScore: analysis.healthScore,
+                        lastAnalyzedAt: new Date(),
+                    },
+                },
+            })
+
+            res.json({
+                success: true,
+                data: {
+                    analysis,
+                    project: {
+                        id: project._id,
+                        name: project.name,
+                        status: project.status,
+                    }
+                },
+                message: 'Project health analysis completed'
+            })
+
+        } catch (error) {
+            next(error)
+        }
+    }
 }
