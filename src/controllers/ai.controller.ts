@@ -1,11 +1,11 @@
 import { Response,NextFunction } from "express";
-import { AuthRequest } from "../types";
-import { ProjectService } from "../services/project.service";
-import { AuthorizationError, ValidationError } from "../utils/errors";
-import { TaskService } from "../services/task.service";
-import { AIService } from "../services/ai.service";
-import { Task } from "../models/task.model";
-import { User } from "../models/user.model";
+import { AuthRequest } from "../types/index.js";
+import { ProjectService } from "../services/project.service.js";
+import { AuthorizationError, ValidationError } from "../utils/errors.js";
+import { TaskService } from "../services/task.service.js";
+import { AIService } from "../services/ai.service.js";
+import { Task } from "../models/task.model.js";
+import { User } from "../models/user.model.js";
 
 
 export class AIController {
