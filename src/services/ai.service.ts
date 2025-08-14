@@ -17,7 +17,7 @@ interface SchedulingRecommendation {
     taskId: string
     recommendedStartDate: Date
     recommendedAssignees: string[]
-    worloadBalance: number
+    workloadBalance: number
     conflicts: string[]
     reasoning: string
 }
