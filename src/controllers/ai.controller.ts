@@ -202,4 +202,64 @@ export class AIController {
             next(error)
         }
     }
+
+    static async suggestNextTasks(req: AuthRequest, res: Response, next: NextFunction){
+        // extract taskId from url
+        // get the completed task 
+        
+        // validate that task is completed
+        // task status should be 'done, throw error if not
+        // get the project that contains this task
+
+        // get all tasks in the project for context
+        // and call aiservice.findbyproject
+
+        // call suggestNextTasks with task, project info
+        // return the response
+
+        try {
+            const { taskId } = req.params
+            const completedTask = await TaskService.findById(
+                taskId,
+                req.user!._id.toString(),
+                req.tenantId!,
+            )
+            if(completedTask.status !== 'done'){
+                throw new ValidationError('Task is not completed yet')
+            }
+            const project = await ProjectService.findById(
+                completedTask.projectId.toString(),
+                req.tenantId!,
+                req.user!._id.toString()
+                
+            )
+
+            const projectTasks = await TaskService.findByProject(
+                completedTask.projectId.toString(),
+                req.user!._id.toString(),
+                req.tenantId!
+            )
+
+            const suggestions = await AIService.suggestNextTasks(
+                completedTask,
+                projectTasks,
+                project
+            )
+
+            res.json({
+                success: true,
+                data: {
+                    suggestions: suggestions.suggestedTasks,
+                    basedOn: {
+                        taskId: completedTask._id,
+                        taskTitle: completedTask.title,
+                    }
+                },
+                message: 'Next task suggestions generated'
+            })
+
+        } catch (error) {
+            next(error)
+        }
+    }
 }
