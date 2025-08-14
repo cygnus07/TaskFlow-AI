@@ -5,6 +5,7 @@ import { AuthorizationError, ValidationError } from "../utils/errors";
 import { TaskService } from "../services/task.service";
 import { AIService } from "../services/ai.service";
 import { Task } from "../models/task.model";
+import { User } from "../models/user.model";
 
 
 export class AIController {
@@ -93,5 +94,112 @@ export class AIController {
             next(error)
         }
 
+    }
+
+    static async generateSchedule(req: AuthRequest, res: Response, next: NextFunction){
+        // get the project id from url
+        // get applySchedule flag from body
+        // get the project and verify user has access
+        // get tasks that need scheduling
+        // filter for todo and inprogress
+
+        // validate the tasks
+        // get project members and members ids
+        // call generateSchedule function 
+
+        // if applyschedule is true, check the user is manager
+        // update each task with start date and assignees
+        // add activity log entries
+
+        // return response
+
+        try {
+            const { projectId } = req.params
+            const { applySchedule = false} = req.body // false by defaullt
+            
+            const project = await ProjectService.findById(
+                projectId,
+                req.tenantId!,
+                req.user!._id.toString()
+            )
+
+            const tasks = await Task.find({
+                projectId,
+                tenantId: req.tenantId,
+                status: { $in: ['todo', 'in-progress']}
+            })
+
+            if(tasks.length === 0){
+                throw new ValidationError('No tasks available for scheduling')
+            }
+
+            const memberIds = project.members.map(m => m.user)
+            const teamMembers = await User.find({
+                _id: { $in: memberIds },
+                tenantId: req.tenantId
+            })
+
+            const scheduleRecommendations = await AIService.generateSchedule(
+                tasks,
+                project,
+                teamMembers
+            )
+
+            let appliedCount = 0
+            if(applySchedule){
+                const userRole = project.getMemberRole(req.user!._id.toString())
+                if(userRole !== 'manager'){
+                    throw new AuthorizationError('Only project managers can apply AI schedules')
+                }
+
+                for(const rec of scheduleRecommendations){
+                    const task = tasks.find( t => String(t._id) === rec.taskId)
+                    if(task){
+                        await Task.findByIdAndUpdate(
+                            rec.taskId,
+                            {
+                                $set: {
+                                    startDate: rec.recommendedStartDate,
+                                    assignees: rec.recommendedAssignees,
+                                },
+                                $push: {
+                                    activityLog: {
+                                        user: req.user!._id,
+                                        action: 'ai_scheduled',
+                                        details: {
+                                            assignees: rec.recommendedAssignees,
+                                            startDate: rec.recommendedStartDate,
+                                            reasoning: rec.reasoning
+                                        },
+                                        timestamp: new Date()
+                                    }
+                                }
+                            }
+                        )
+                        appliedCount++;
+                    }
+                }
+            }
+
+
+            res.json({
+                success: true,
+                data: {
+                    schedule: scheduleRecommendations,
+                    applied: applySchedule,
+                    appliedCount,
+                    summary: {
+                        tasksScheduled: scheduleRecommendations.length,
+                        averageWorkloadBalance: Math.round(
+                            scheduleRecommendations.reduce((sum,r) => sum + r.worloadBalance, 0)
+                        )
+                    }
+                },
+                message: applySchedule? 'Schedule generated and applied' : 'Schedule generated successfully'
+
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }
