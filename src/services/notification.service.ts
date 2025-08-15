@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { INotification, Notification } from "../models/notification.model.js";
-import { SocketService } from "./socket.service";
-import { User } from "../models/user.model";
+import { SocketService } from "./socket.service.js";
+import { User } from "../models/user.model.js";
 
 interface CreateNotificationData {
     userId: string | Types.ObjectId

@@ -3,6 +3,8 @@ import { Project } from "../models/project.model.js"
 import { ITask, Task } from "../models/task.model.js"
 import { User } from "../models/user.model.js"
 import { AuthorizationError, NotFoundError, ValidationError } from "../utils/errors.js"
+import { SocketService } from "./socket.service.js"
+import { NotificationService } from "./notification.service.js"
 
 
 export interface createTaskData {
@@ -94,6 +96,17 @@ export class TaskService {
                 timeStamp: new Date(),
             }]
         })
+
+        SocketService.notifyTaskCreated(task, data.projectId)
+
+        if(data.assignees && data.assignees.length > 0){
+            await NotificationService.notifyTaskAssignment(
+                task,
+                data.assignees,
+                userId,
+                tenantId
+            )
+        }
 
 
         project.metadata.totalTasks += 1
@@ -260,6 +273,20 @@ export class TaskService {
         }
 
         await task.save()
+
+        SocketService.notifyTaskUpdated(task, task.projectId.toString(), changes)
+
+        if(changes.status && data.status === 'done'){
+            const project = await Project.findById(task.projectId)
+            const memberIds = project!.members.map(m => m.user.toString())
+
+            await NotificationService.notifyTaskCompleted(
+                task,
+                userId,
+                memberIds,
+                tenantId
+            )
+        }
 
         if(changes.status){
             await this.updateProjectTaskCounts(task.projectId.toString(), tenantId)
