@@ -55,4 +55,58 @@ export class NotificationService {
 
         return notifications as INotification[];
     }
+
+    static async markAsRead(
+        notificationId: string,
+        userId: string,
+        tenantId: string
+    ): Promise<INotification | null> {
+        // find notification that matches id, userId and tenantId
+        // update it to read true and set readAt timestamp
+        // use findOneAndUpdate with new true to get back updated doc
+
+        // send real time update to user 
+        // send the notification id
+        // return the updated notification or null
+
+        const notification = await Notification.findOneAndUpdate(
+            { _id: notificationId, userId, tenantId, read: false},
+            { read: true, readAt: new Date()},
+            { new: true}
+        )
+
+        if(notification){
+            SocketService.emitToUser(userId, 'notification:read', {
+                notificationId: notification._id
+            })
+        }
+
+        return notification
+
+
+    }
+
+    static async markAllAsRead(
+        userId: string,
+        tenantId: string
+    ): Promise<number> {
+        // update all unread notifications for the user
+        // set read: true and readAT timestamp
+        
+        // if updated, send realtime event to user with count of how many wer marked read
+        // reutrn count of notifications
+
+        const result = await Notification.updateMany(
+            {userId, tenantId, read: false},
+            { read: true, readAt: new Date()}
+        )
+
+        if(result.modifiedCount > 0){
+            SocketService.emitToUser(userId, 'notifications:all:read', {
+                count: result.modifiedCount
+            })
+        }
+
+        return result.modifiedCount
+    }
 }
