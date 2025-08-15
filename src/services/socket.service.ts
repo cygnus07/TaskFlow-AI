@@ -4,6 +4,8 @@ import { config } from '../config/index.js'
 import { JWTUtil } from '../utils/jwt.utils.js'
 import { User } from '../models/user.model.js'
 import { NextFunction } from 'express'
+import { Project } from '../models/project.model.js'
+import { disconnect } from 'process'
 
 interface AuthenticatedSocket extends Socket {
     userId: string
@@ -101,6 +103,7 @@ export class SocketService {
 
             this.addUserSocket(authSocket.userId, socket.id)
 
+            // joining the project roooms
             socket.on('join:project',async(projectId: string) => {
                 try {
                     const room = `project:${projectId}`
@@ -117,6 +120,47 @@ export class SocketService {
                 } catch (error) {
                     socket.emit('error', { message: 'Failed to join project'})
                 }
+            })
+
+            // leaving project rooms
+            socket.on('leave:project', async (projectId: string) => {
+                const room = `project:${projectId}`
+                await socket.leave(room)
+                authSocket.projectRooms.delete(projectId)
+
+                socket.to(room).emit('user:left', {
+                    userId: authSocket.userId,
+                    projectId,
+                })
+            })
+
+            // typing indicators
+            socket.on('typing:start', (data: { projectId: string, taskId?: string}) => {
+                const room = data.taskId ? `task:${data.taskId}` : `project:${data.projectId}`
+                socket.to(room).emit('user:typing', {
+                    userId: authSocket.userId,
+                    ...data
+                })
+            })
+
+            socket.on('typing:stop', (data: { projectId: string, taskId?: string}) => {
+                const room = data.taskId ? `task:${data.taskId}` : `project:${data.projectId}`
+                socket.to(room).emit('user:stopped:typring', {
+                    userId: authSocket.userId,
+                    ...data
+                })
+            })
+
+            socket.on('disconnect', () => {
+                console.log(`User ${authSocket.userId} disconnected` )
+                this.removeUserSocket(authSocket.userId, socket.id)
+
+                authSocket.projectRooms.forEach(projectId => {
+                    socket.to(`project:${projectId}`).emit('user:left', {
+                        userId: authSocket.userId,
+                        projectId
+                    })
+                })
             })
         })
     }
@@ -140,5 +184,16 @@ export class SocketService {
         })
 
         return Array.from(userIds)
+    }
+
+    private static removeUserSocket(userId: string, socketId: string){
+        const sockets = this.userSockets.get(userId)
+        if(sockets){
+            sockets.delete(socketId)
+            if(sockets.size === 0){
+                this.userSockets.delete(userId)
+            }
+        }
+        this.socketUsers.delete(socketId)
     }
 }
