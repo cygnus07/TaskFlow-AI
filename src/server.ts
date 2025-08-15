@@ -1,6 +1,8 @@
 import { createApp } from "./app.js"
 import { config } from './config/index.js'
 import { connectDB } from "./config/database.js"
+import { createServer } from "http"
+import { SocketService } from "./services/socket.service.js"
 
 process.on('uncaughtException', (error: Error) => {
     console.log("Uncaught Exception: ", error)
@@ -18,19 +20,24 @@ const startServer = async () => {
 
         await connectDB()
         const app = createApp()
-        const server = app.listen(config.port, () => {
+        const httpServer = createServer(app)
+
+        SocketService.initialize(httpServer)
+
+        httpServer.listen(config.port, () => {
             console.log(`
-                Server is runnning
+                Server is running
                 Environment: ${config.env}
                 URL: http://localhost:${config.port}
-                Health Check: http://localhost:${config.port}/health
-                `)
+                HEalth check: http://localhost:${config.port}/health
+                Database: connected
+                Websocket: Ready`)
         })
 
         // graceful shutdown
         process.on('SIGTERM', () => {
             console.log('SIGTERM received, shutting down gracefully')
-            server.close( () => {
+            httpServer.close( () => {
                 console.log("Server closed")
                 process.exit(0)
             })

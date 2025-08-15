@@ -193,7 +193,7 @@ export class NotificationService {
             projectMemberIds.filter(id => id !== completedBy),
             {
                 type: 'task_completed',
-                title: 'Task ccompleted',
+                title: 'Task completed',
                 message: `${completer?.name || 'Someone'} completed "${task.title}`,
                 data: {
                     taskId: task._id,
