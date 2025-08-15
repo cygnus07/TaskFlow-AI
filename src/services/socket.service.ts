@@ -143,7 +143,7 @@ export class SocketService {
 
             socket.on('typing:stop', (data: { projectId: string, taskId?: string}) => {
                 const room = data.taskId ? `task:${data.taskId}` : `project:${data.projectId}`
-                socket.to(room).emit('user:stopped:typring', {
+                socket.to(room).emit('user:stopped:typing', {
                     userId: authSocket.userId,
                     ...data
                 })
