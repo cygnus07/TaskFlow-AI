@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { authenticate } from "../middleware/auth.middleware";
-import { AuthRequest } from "../types";
-import { NotificationService } from "../services/notification.service";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { AuthRequest } from "../types/index.js";
+import { NotificationService } from "../services/notification.service.js";
 
 
 const router = Router()
