@@ -131,4 +131,39 @@ export class CacheService {
             return {}
         }
     }
+
+    static async checkRateLimit(
+        identifier: string,
+        limit: number,
+        window: number
+    ): Promise<{allowed: boolean; remaining: number; resetAt: number}> {
+        try {
+            const client = redisClient.getClient()
+            const key= `${this.prefix}ratelimit:${identifier}`
+
+            const multi = client.multi()
+            const now = Date.now()
+            const windowStart = now - window * 1000
+
+            multi.zremrangebyscore(key, '-inf', windowStart)
+
+            multi.zcard(key)
+
+            multi.zadd(key,now, `${now}-${Math.random()}`)
+
+            multi.expire(key, window)
+
+            const results = await multi.exec()
+            const count = results?.[1]?.[1] as number || 0
+
+            return {
+                allowed: count < limit,
+                remaining: Math.max(0, limit - count -1),
+                resetAt: now + window*1000
+            }
+        } catch (error) {
+            console.error('Rate limit error: ', error)
+            return { allowed: true, remaining: limit, resetAt: 0}
+        }
+    }
 }
