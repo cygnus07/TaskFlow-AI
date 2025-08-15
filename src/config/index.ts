@@ -13,6 +13,8 @@ const envSchema = z.object({
     OPENAI_API_KEY : z.string().optional(),
     OPENAI_MODEL: z.string().default('gpt-4-turbo-preview'),
     AI_FEATURES_ENABLED: z.string().transform( val => val === 'true').default('false'),
+    REDIS_URL: z.string().default('redis://localhost:6379'),
+    CACHE_TTL: z.string().transform(Number).default('3600')
 
 })
 
@@ -45,6 +47,10 @@ export const config = {
         enabled: envVars.AI_FEATURES_ENABLED,
         openaiApiKey: envVars.OPENAI_API_KEY,
         model: envVars.OPENAI_MODEL
+    },
+    redis: {
+        url: envVars.REDIS_URL,
+        ttl: envVars.CACHE_TTL
     }
 
 }as const
