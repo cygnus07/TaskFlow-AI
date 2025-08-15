@@ -205,4 +205,34 @@ export class NotificationService {
             }
         )
     }
+
+    static async notifyCommentMention(
+        comment: any,
+        taskId: string,
+        mentionedUserIds: string[],
+        commentBy: string,
+        tenantId: string
+    ){
+        // get the commenters infor
+        // send notifications to all mentioned users
+        // dont need to filter out commenter 
+        // include taskId, commentId, and who commented for context and navigation
+
+        const commenter = await User.findById(commentBy)
+        await this.createBulk(
+            mentionedUserIds,
+            {
+                type: 'comment_mention',
+                title: 'You were mentioned',
+                message: `${commenter?.name || 'Someone'} mentioned you in a comment`,
+                data: {
+                    taskId,
+                    commentId: comment._id,
+                    commentBy
+                },
+                priority: 'medium',
+                tenantId
+            }
+        )
+    }
 }
