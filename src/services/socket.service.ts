@@ -3,9 +3,7 @@ import { Server as SocketServer, Socket} from 'socket.io'
 import { config } from '../config/index.js'
 import { JWTUtil } from '../utils/jwt.utils.js'
 import { User } from '../models/user.model.js'
-import { NextFunction } from 'express'
-import { Project } from '../models/project.model.js'
-import { disconnect } from 'process'
+
 
 interface AuthenticatedSocket extends Socket {
     userId: string
@@ -182,7 +180,53 @@ export class SocketService {
         }
     }
 
-    
+    static notifyTaskCreated(task: any, projectId: string){
+        this.emitToProject(projectId, 'task:created', {
+            task,
+            projectId,
+            timestamp: new Date()
+        })
+    }
+
+    static notifyTaskUpdated(task: any, projectId: string, changes: any){
+        this.emitToProject(projectId, 'task:updated', {
+            task,
+            changes,
+            projectId,
+            timestamp: new Date()
+        })
+    }
+
+    static notifyTaskDeleted(taskId: string, projectId: string){
+        this.emitToProject(projectId, 'task:deleted', {
+            taskId,
+            projectId,
+            timestamp: new Date()
+        })
+    }
+
+    static notifyTaskAssigned(task: any, assigneeId: string, projectId: string) {
+        this.emitToProject(projectId, 'task:assigned', {
+            task,
+            assigneeId,
+            timestamp: new Date()
+        })
+
+        this.emitToUser(assigneeId, 'task:assigned:you', {
+            task,
+            projectId,
+            timestamp: new Date()
+        })
+    }
+
+    static notifyCommentAdded(taskId: string, comment: any, projectId: string){
+        this.emitToProject(projectId, 'comment:added', {
+            taskId,
+            comment,
+            projectId,
+            timestamp: new Date()
+        })
+    }
 
     private static addUserSocket(userId: string, socketId: string){
         if(!this.userSockets.has(userId)){
