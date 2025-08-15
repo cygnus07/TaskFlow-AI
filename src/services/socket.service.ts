@@ -3,10 +3,17 @@ import { Server as SocketServer, Socket} from 'socket.io'
 import { config } from '../config/index.js'
 import { JWTUtil } from '../utils/jwt.utils.js'
 import { User } from '../models/user.model.js'
+import { NextFunction } from 'express'
+
+interface AuthenticatedSocket extends Socket {
+    userId: string
+    tenantId: string
+    projectRooms: Set<string>
+}
 
 
 export class SocketService {
-    private static io: SocketService
+    private static io: SocketServer
     private static userSockets: Map<string, Set<string>> = new Map()
     private static socketUsers: Map<string, string> = new Map()
 
@@ -61,5 +68,77 @@ export class SocketService {
             }
         })
         
+    }
+
+    private static setupEventHandlers(){
+        // listen for new connections coming ing
+        // when someone connects, cast to authenticated socket type
+
+        // add this socket to our tracking maps so we know who's online
+        // put them in their tenant room automatically 
+
+        // set up listener for when they want to join a specific project
+        // need to validate they actually have access to that project
+        // add them to the project room and trackt it in their projectrooms set
+        // tell everyone else in the project someone joined
+        // send them back who else is currently online in that project
+
+        // set up listener for leaving projects
+        // remove from room, remove from tracking set
+        // notify others they left
+
+        // handle typing start/stop events
+        // figure out if it's project-level or task level typing
+        // broadcast to the right room but dont send back to sender
+
+        // when they discoonect, clean up everything
+        // remove from all our tracking maps
+        // notify all project rooms 
+
+        this.io.on('connection', (socket: Socket) => {
+            const authSocket = socket as AuthenticatedSocket
+            console.log(`User ${authSocket.userId} connected`)
+
+            this.addUserSocket(authSocket.userId, socket.id)
+
+            socket.on('join:project',async(projectId: string) => {
+                try {
+                    const room = `project:${projectId}`
+                    await socket.join(room)
+                    authSocket.projectRooms.add(projectId)
+
+                    socket.to(room).emit('user:joined', {
+                        userId: authSocket.userId,
+                        projectId,
+                    })
+
+                    const onlineUsers = this.getProjectOnlineUsers(projectId)
+                    socket.emit('project:users:online', { projectId, users: onlineUsers})
+                } catch (error) {
+                    socket.emit('error', { message: 'Failed to join project'})
+                }
+            })
+        })
+    }
+
+    private static addUserSocket(userId: string, socketId: string){
+        if(!this.userSockets.has(userId)){
+            this.userSockets.set(userId, new Set())
+        }
+        this.userSockets.get(userId)!.add(socketId)
+        this.socketUsers.set(socketId, userId)
+    }
+
+    private static getProjectOnlineUsers(projectId: string): string[] {
+        const room = this.io.sockets.adapter.rooms.get(`project:${projectId}`)
+        if(!room) return []
+
+        const userIds = new Set<string>()
+        room.forEach(socketId => {
+            const userId = this.socketUsers.get(socketId)
+            if(userId) userIds.add(userId)
+        })
+
+        return Array.from(userIds)
     }
 }
