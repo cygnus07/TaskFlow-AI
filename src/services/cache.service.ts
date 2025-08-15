@@ -94,4 +94,41 @@ export class CacheService {
             this.keys.taskList(projectId)
         ])
     }
+
+    static async addUserSession(userId: string, sessionId: string, data: any): Promise<void> {
+        try {
+            const client = redisClient.getClient()
+            const key = this.keys.userSessions(userId)
+
+            await client.hset(key, sessionId, JSON.stringify(data))
+            await client.expire(key, 86400*7)
+        } catch (error) {
+            console.error('Session add error: ', error)
+        }
+    }
+
+    static async removeUserSession(userId: string, sessionId: string): Promise<void> {
+        try {
+            const client = redisClient.getClient()
+            await client.hdel(this.keys.userSessions(userId), sessionId)
+        } catch (error) {
+            console.error('Session remove error: ', error)
+        }
+    }
+
+    static async getUserSessions(userId: string): Promise<Record<string,any>> {
+        try {
+            const client = redisClient.getClient()
+            const sessions = await client.hgetall(this.keys.userSessions(userId))
+
+            const parsed: Record<string,any> = {}
+            for(const [id,data] of Object.entries(sessions)){
+                parsed[id] = JSON.parse(data)
+            }
+            return parsed
+        } catch (error) {
+            console.error('Session got error: ', error)
+            return {}
+        }
+    }
 }
