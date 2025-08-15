@@ -228,6 +228,26 @@ export class SocketService {
         })
     }
 
+    static notifyProjectUpdated(project: any){
+        this.emitToProject(project._id.toString(), 'project:updated', {
+            project,
+            timestamp: new Date()
+        })
+    }
+
+    static notifyProjectMemberAdded(projectId: string, member: any){
+        this.emitToProject(projectId, 'project:member:added', {
+            member,
+            projectId,
+            timestamp: new Date()
+        })
+
+        this.emitToUser(member.user.toString(), 'project:added:you', {
+            projectId,
+            timestamp: new Date()
+        })
+    }
+
     private static addUserSocket(userId: string, socketId: string){
         if(!this.userSockets.has(userId)){
             this.userSockets.set(userId, new Set())
@@ -258,5 +278,9 @@ export class SocketService {
             }
         }
         this.socketUsers.delete(socketId)
+    }
+
+    static getIO(): SocketServer {
+        return this.io
     }
 }
