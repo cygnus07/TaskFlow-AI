@@ -5,7 +5,7 @@ import { model, Schema, Types } from 'mongoose'
 
 export interface INotification extends IBaseDocument {
     userId: Types.ObjectId
-    type: 'task-assigned' | 'task_completed' | 'comment_mention' | 'project_update' | 'deadline_reminder'
+    type: 'task_assigned' | 'task_completed' | 'comment_mention' | 'project_update' | 'deadline_reminder'
     title: string 
     message: string
     read: boolean

@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { INotification, Notification } from "../models/notification.model.js";
 import { SocketService } from "./socket.service";
+import { User } from "../models/user.model";
 
 interface CreateNotificationData {
     userId: string | Types.ObjectId
@@ -23,7 +24,8 @@ export class NotificationService {
         // return the created notification 
 
         const notification = await Notification.create(data)
-        SocketService.emitToUser(data.userId, 'notification:new', notification)
+        const userIdString = typeof data.userId === 'string' ? data.userId : data.userId.toString()
+        SocketService.emitToUser(userIdString, 'notification:new', notification)
 
         return notification
     }
@@ -118,7 +120,7 @@ export class NotificationService {
             limit?: number
             skip?: number
         }
-    ): Promise<{notifications: INotification[]; unreadCount: number}{
+    ): Promise<{notifications: INotification[]; unreadCount: number}>{
         // build the query object starting with userId and tenantId
         // if unreadOnly flag is set, add read: false to query
 
@@ -141,5 +143,66 @@ export class NotificationService {
         ])
 
         return { notifications, unreadCount}
+    }
+
+    static async notifyTaskAssignment(
+        task: any,
+        assigneeIds: string[],
+        assignedBy: string,
+        tenantId: string
+    ){
+        // fetch the user who did the assigning
+        // filter out the person who did it
+        // create buld notifications for all the actual assignees
+        // build message with assinger name and task title
+        // set prirority based on task prirorty
+        // include the task and project ids
+
+        const assigner =await User.findById(assignedBy)
+        await this.createBulk(
+            assigneeIds.filter( id => id !== assignedBy),
+            {
+                type: 'task_assigned',
+                title: 'New Task Assigned',
+                message: `${assigner?.name || 'Someone'} assigned you to "${task.title}"`,
+                data: {
+                    taskId: task._id,
+                    projectId: task.projectId,
+                    assignedBy,
+                },
+                priority: task.priority === 'urgent'? 'high' : 'medium',
+                tenantId
+            }
+        )
+    }
+
+    static async notifyTaskCompleted(
+        task: any,
+        completedBy: string,
+        projectMemberIds: string[],
+        tenantId: string
+    ){
+        // get the user who completed the task
+        // filter out the person who completed it
+        // send notifications to all other project members
+        // include task and project info in data payload
+
+        const completer = await User.findById(completedBy)
+
+        await this.createBulk(
+            projectMemberIds.filter(id => id !== completedBy),
+            {
+                type: 'task_completed',
+                title: 'Task ccompleted',
+                message: `${completer?.name || 'Someone'} completed "${task.title}`,
+                data: {
+                    taskId: task._id,
+                    projectId: task.projectId,
+                    completedBy,
+                },
+                priority: 'low',
+                tenantId
+            }
+        )
     }
 }
