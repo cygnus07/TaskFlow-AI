@@ -74,4 +74,24 @@ export class CacheService {
             console.error('Cache delete pattern error:', error)
         }
     }
+
+    static async invalidateUser(userId: string): Promise<void> {
+        await this.delete(this.keys.user(userId))
+    }
+
+    static async invalidateProject(projectId: string, tenantId: string): Promise<void> {
+        await this.delete([
+            this.keys.project(projectId),
+            this.keys.taskList(projectId)
+        ])
+
+        await this.deletePattern(`projects:${tenantId}:*`)
+    }
+
+    static async invalidateTask(taskId: string, projectId: string): Promise<void> {
+        await this.delete([
+            this.keys.task(taskId),
+            this.keys.taskList(projectId)
+        ])
+    }
 }
