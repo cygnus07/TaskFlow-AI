@@ -109,4 +109,37 @@ export class NotificationService {
 
         return result.modifiedCount
     }
+
+    static async getUserNotifications (
+        userId: string,
+        tenantId: string,
+        options: {
+            unreadOnly?: boolean
+            limit?: number
+            skip?: number
+        }
+    ): Promise<{notifications: INotification[]; unreadCount: number}{
+        // build the query object starting with userId and tenantId
+        // if unreadOnly flag is set, add read: false to query
+
+        // run the two queries in parallel
+        // one for notification and other fro unread ocunt
+        
+        // return both results as object - notification array and total unread count
+        
+        const query: any = { userId, tenantId}
+        if(options.unreadOnly){
+            query.read = false
+        }
+
+        const [ notifications, unreadCount] = await Promise.all([
+            Notification.find(query)
+            .sort({ createdAt: -1})
+            .limit(options.limit || 50)
+            .skip(options.skip || 0),
+            Notification.countDocuments({ userId, tenantId, read: false})
+        ])
+
+        return { notifications, unreadCount}
+    }
 }
