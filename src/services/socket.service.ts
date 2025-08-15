@@ -165,6 +165,25 @@ export class SocketService {
         })
     }
 
+    static emitToProject(projectId: string, event: string, data: any){
+        this.io.to(`project:${projectId}`).emit(event,data)
+    }
+
+    static emitToTenant(tenantId: string, event: string, data: any){
+        this.io.to(`tenant:${tenantId}`).emit(event, data)
+    }
+
+    static emitToUser(userId: string, event: string, data: any){
+        const socketIds = this.userSockets.get(userId)
+        if(socketIds){
+            socketIds.forEach(socketId => {
+                this.io.to(socketId).emit(event,data)
+            })
+        }
+    }
+
+    
+
     private static addUserSocket(userId: string, socketId: string){
         if(!this.userSockets.has(userId)){
             this.userSockets.set(userId, new Set())
