@@ -50,4 +50,28 @@ export class CacheService {
             console.error('Cache set error:', error)
         }
     }
+
+    static async delete(key: string | string[]): Promise<void> {
+        try {
+            const client = redisClient.getClient()
+            const keys = Array.isArray(key) ? key: [key]
+
+            if(keys.length > 0){
+                await client.del(...keys)
+            }
+        } catch (error) {
+            console.error('Cache delete error', error)
+        }
+    }
+
+    static async deletePattern(pattern: string): Promise<void> {
+        try {
+            const client = redisClient.getClient()
+            const keys = await client.keys(`${this.prefix}${pattern}`)
+
+            if(keys.length >0) await client.del(...keys)
+        } catch (error) {
+            console.error('Cache delete pattern error:', error)
+        }
+    }
 }
