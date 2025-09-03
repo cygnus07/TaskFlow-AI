@@ -22,14 +22,14 @@ const startServer = async () => {
 
             await connectDB()
 
-            try {
+            // try {
 
-                        await redisClient.connect()
-                        console.log('Redis connected')
+            //             await redisClient.connect()
+            //             console.log('Redis connected')
                 
-            } catch (error) {
-                console.error('Redis connection failed, continuing without it')
-            }
+            // } catch (error) {
+            //     console.error('Redis connection failed, continuing without it')
+            // }
 
         const httpServer = createServer(app)
 
