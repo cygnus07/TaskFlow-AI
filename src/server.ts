@@ -17,11 +17,20 @@ process.on('unhandledRejection', (error: Error ) => {
 })
 
 const startServer = async () => {
-    try {
+           const app = createApp()
+            try {
 
-        await connectDB()
-        await redisClient.connect()
-        const app = createApp()
+            await connectDB()
+
+            try {
+
+                        await redisClient.connect()
+                        console.log('Redis connected')
+                
+            } catch (error) {
+                console.error('Redis connection failed, continuing without it')
+            }
+
         const httpServer = createServer(app)
 
         SocketService.initialize(httpServer)

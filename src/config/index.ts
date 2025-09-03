@@ -20,8 +20,8 @@ const envSchema = z.object({
 console.log('🔍 Environment variables check:');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('PORT:', process.env.PORT);
-console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
-console.log('MONGODB_URI starts with mongodb:', process.env.MONGODB_URI?.startsWith('mongodb'));
+console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
+console.log('MONGO_URI starts with mongodb:', process.env.MONGO_URI?.startsWith('mongodb'));
 console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
 
 
