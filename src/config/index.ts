@@ -39,7 +39,7 @@ export const config = {
     },
     cors: {
         origin: envVars.NODE_ENV === 'production'
-        ? "the custome domain" 
+        ? "the custom domain" 
         : 'http://localhost:3001',
         credentials: true
     },
