@@ -6,7 +6,8 @@ dotenv.config()
 
 const envSchema = z.object({
     NODE_ENV: z.enum(['development','test','production']).default('development'),
-    PORT: z.string().transform(Number).default('3000'),
+    // PORT: z.string().transform(Number).default('3000'),
+    PORT: z.coerce.number().default(3000),
     MONGODB_URI: z.string().startsWith('mongodb').url(),
     JWT_SECRET: z.string().min(32),
     JWT_EXPIRE: z.string().default('7d'),
@@ -14,7 +15,7 @@ const envSchema = z.object({
     OPENAI_MODEL: z.string().default('gpt-4-turbo-preview'),
     AI_FEATURES_ENABLED: z.string().transform( val => val === 'true').default('false'),
     REDIS_URL: z.string().default('redis://localhost:6379'),
-    CACHE_TTL: z.string().transform(Number).default('3600')
+    CACHE_TTL: z.coerce.transform(Number).default('3600')
 
 })
 
