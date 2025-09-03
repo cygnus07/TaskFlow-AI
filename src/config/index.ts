@@ -6,7 +6,7 @@ dotenv.config()
 const envSchema = z.object({
     NODE_ENV: z.enum(['development','test','production']).default('development'),
     PORT: z.coerce.number().default(3000),
-    MONGODB_URI: z.string().startsWith('mongodb').url(),
+    MONGO_URI: z.string().startsWith('mongodb').url(),
     JWT_SECRET: z.string().min(32),
     JWT_EXPIRE: z.string().default('7d'),
     OPENAI_API_KEY: z.string().optional(),
@@ -39,7 +39,7 @@ export const config = {
     env: envVars.NODE_ENV,
     port: envVars.PORT,
     mongoose: {
-        uri: envVars.MONGODB_URI,
+        uri: envVars.MONGO_URI,
         options: {
             maxPoolSize: 10,
         },
