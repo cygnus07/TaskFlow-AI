@@ -275,7 +275,7 @@ socket.on('task:updated', (data) => {
 });
 ```
 
-## 🧪 Testing
+<!-- ## 🧪 Testing
 
 ### Run All Tests
 ```bash
@@ -298,56 +298,11 @@ npm run test:watch
 - **E2E Tests**: Complete user workflows
 - **Performance Tests**: Response times and caching
 
-**Current test coverage: 90%+**
+**Current test coverage: 90%+** -->
 
-## 🚀 Deployment
 
-### Deploy to AWS EC2
 
-1. **Set up EC2 instance with Ubuntu 22.04**
 
-2. **Install dependencies:**
-```bash
-sudo apt update
-sudo apt install nodejs npm nginx mongodb-org redis-server
-```
-
-3. **Configure Nginx:**
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-4. **Use PM2 for process management:**
-```bash
-npm install -g pm2
-pm2 start dist/server.js --name taskflow-api
-pm2 save
-pm2 startup
-```
-
-### Deploy with Docker
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["node", "dist/server.js"]
-```
 
 ## 🔒 Security Features
 
