@@ -16,6 +16,15 @@ const envSchema = z.object({
     CACHE_TTL: z.coerce.number().default(3600)
 })
 
+
+console.log('🔍 Environment variables check:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+console.log('MONGODB_URI starts with mongodb:', process.env.MONGODB_URI?.startsWith('mongodb'));
+console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+
+
 // Add error handling for environment validation
 let envVars;
 try {
