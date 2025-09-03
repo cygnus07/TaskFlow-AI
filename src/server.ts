@@ -10,39 +10,40 @@ process.on('uncaughtException', (error: Error) => {
     process.exit(1)
 })
 
-
 process.on('unhandledRejection', (error: Error ) => {
     console.log("Unhandled Rejection: ", error)
     process.exit(1)
 })
 
 const startServer = async () => {
-           const app = createApp()
-            try {
+    const app = createApp()
+    try {
+        await connectDB()
 
-            await connectDB()
-
-            // try {
-
-            //             await redisClient.connect()
-            //             console.log('Redis connected')
-                
-            // } catch (error) {
-            //     console.error('Redis connection failed, continuing without it')
-            // }
+        // try {
+        //     await redisClient.connect()
+        //     console.log('Redis connected')
+        // } catch (error) {
+        //     console.error('Redis connection failed, continuing without it')
+        // }
 
         const httpServer = createServer(app)
-
         SocketService.initialize(httpServer)
 
-        httpServer.listen(config.port, "0.0.0.0", () => {
-        console.log(`
-            🚀 Server is running
-            Environment: ${config.env}
-            Port: ${config.port}
-            Health check: /health
-            Database: connected
-            Websocket: Ready`)
+        // Use Railway's PORT environment variable or fallback to config
+        const port = Number(process.env.PORT) || config.port
+        const host:string = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'
+
+        httpServer.listen(port, host, () => {
+            console.log(`
+🚀 Server is running
+Environment: ${config.env}
+Port: ${port}
+Host: ${host}
+Health check: /health
+Database: connected
+Websocket: Ready
+Railway URL: ${process.env.RAILWAY_PUBLIC_DOMAIN || 'Not available'}`)
         })
 
         // graceful shutdown
@@ -50,16 +51,19 @@ const startServer = async () => {
             console.log('SIGTERM received, shutting down gracefully')
             httpServer.close(async () => {
                 await disconnectDB()
-                await redisClient.disconnect()
+                try {
+                    await redisClient.disconnect()
+                } catch (error) {
+                    console.log('Redis disconnect error (expected if not connected)')
+                }
                 console.log("Server closed")
                 process.exit(0)
             })
         })
     } catch (error) {
-        console.error("Failed to start a server", error)
+        console.error("Failed to start server", error)
         process.exit(1)
     }
 }
-
 
 startServer()
