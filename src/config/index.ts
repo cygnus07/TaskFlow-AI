@@ -25,7 +25,6 @@ console.log('MONGO_URI starts with mongodb:', process.env.MONGO_URI?.startsWith(
 console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
 
 
-// Add error handling for environment validation
 let envVars;
 try {
     envVars = envSchema.parse(process.env)
