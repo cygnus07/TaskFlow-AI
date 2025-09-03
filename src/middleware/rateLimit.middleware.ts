@@ -43,22 +43,24 @@ export const rateLimit = (options: RateLimitOptions) => {
       }
 
       if (skipSuccessfulRequests || skipFailedRequests) {
-        const originalEnd = res.end
-        res.end = function(...args: any[]) {
-          const shouldSkip = 
-            (skipSuccessfulRequests && res.statusCode < 400) ||
-            (skipFailedRequests && res.statusCode >= 400)
+            const originalEnd = res.end.bind(res)
 
-          if (shouldSkip) {
-            CacheService.checkRateLimit(
-              identifier,
-              max + 1,
-              Math.floor(windowMs / 1000)
-            )
-          }
+            res.end = ((...args: Parameters<typeof res.end>): ReturnType<typeof res.end> => {
+            const shouldSkip =
+                (skipSuccessfulRequests && res.statusCode < 400) ||
+                (skipFailedRequests && res.statusCode >= 400)
 
-          return originalEnd.apply(res, args)
-        }
+            if (shouldSkip) {
+                CacheService.checkRateLimit(
+                identifier,
+                max + 1,
+                Math.floor(windowMs / 1000)
+                )
+            }
+
+            return originalEnd(...args)
+            }) as typeof res.end
+
       }
 
       next()
@@ -79,18 +81,18 @@ export const authRateLimit = rateLimit({
 export const apiRateLimit = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
-  keyGenerator: (req) => {
+    keyGenerator: (req) => {
     const authReq = req as AuthRequest
-    return authReq.user ? `user:${authReq.user._id}` : req.ip
-  },
+    return authReq.user ? `user:${authReq.user._id}` : req.ip || 'unknown'
+    }
 })
 
 export const aiRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 50,
   message: 'AI request limit exceeded. Please try again later.',
-  keyGenerator: (req) => {
+    keyGenerator: (req) => {
     const authReq = req as AuthRequest
-    return authReq.tenantId || req.ip
-  },
+    return authReq.user ? `user:${authReq.user._id}` : req.ip || 'unknown'
+    }
 })
