@@ -29,6 +29,13 @@ export const createApp = (): Application => {
         app.use(morgan('dev'))
     }
 
+    app.get('/', (_req:Request, res: Response) => {
+        res.status(200).json({
+            status: 'ok',
+            message: 'Api running'
+        })
+    })
+
     app.get('/health', (_req: Request, res: Response) => {
         res.status(200).json({
             status: 'ok',
