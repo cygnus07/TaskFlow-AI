@@ -26,14 +26,14 @@ const startServer = async () => {
 
         SocketService.initialize(httpServer)
 
-        httpServer.listen(config.port, () => {
-            console.log(`
-                Server is running
-                Environment: ${config.env}
-                URL: http://localhost:${config.port}
-                HEalth check: http://localhost:${config.port}/health
-                Database: connected
-                Websocket: Ready`)
+        httpServer.listen(config.port, "0.0.0.0", () => {
+        console.log(`
+            🚀 Server is running
+            Environment: ${config.env}
+            Port: ${config.port}
+            Health check: /health
+            Database: connected
+            Websocket: Ready`)
         })
 
         // graceful shutdown
