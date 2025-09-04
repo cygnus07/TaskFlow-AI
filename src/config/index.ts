@@ -49,8 +49,8 @@ export const config = {
     },
     cors: {
         origin: envVars.NODE_ENV === 'production'
-        ? ["https://taskflow-ai-production.up.railway.app", "https://your-frontend-domain.com"]
-        : 'http://localhost:3001',
+        ? ["https://taskflow-ai-production.up.railway.app", "https://taskflow.kuldeepdev.me"]
+        : 'http://localhost:3000',
         credentials: true
     },
     ai: {

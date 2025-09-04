@@ -7,7 +7,7 @@ import compression from 'compression'
 import morgan from 'morgan'
 import routes from './routes/index.js'
 import { errorHandler } from './middleware/error.middleware.js'
-import { apiRateLimit } from './middleware/rateLimit.middleware.js'
+// import { apiRateLimit } from './middleware/rateLimit.middleware.js'
 
 
 
@@ -16,7 +16,7 @@ export const createApp = (): Application => {
     app.use(helmet())
     app.use(cors(config.cors))
 
-    app.use('/api', apiRateLimit)
+    // app.use('/api', apiRateLimit)
     app.use(express.json({ limit: '10mb'}))
     app.use(express.urlencoded({
         extended: true,
