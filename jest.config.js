@@ -1,5 +1,5 @@
 export default {
-  preset: 'ts-jest',
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
@@ -13,7 +13,11 @@ export default {
       },
     ],
   },
-  testMatch: ['**/__tests__/**/*.test.ts'],
+  testMatch: [
+    "**/tests/**/*.test.ts",
+    "**/__tests__/**/*.test.ts",
+    "**/src/**/*.test.ts"
+  ],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
@@ -23,5 +27,12 @@ export default {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  testTimeout: 30000,
+  testTimeout: 60000, // Increased timeout for database operations
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
+  // Add this to handle async operations better
+  maxWorkers: 1, // Run tests sequentially to avoid database conflicts
 };

@@ -3,7 +3,7 @@ import { config } from './config/index.js'
 import { connectDB, disconnectDB } from "./config/database.js"
 import { createServer } from "http"
 import { SocketService } from "./services/socket.service.js"
-// import { redisClient } from "./config/redis.js"
+import { redisClient } from "./config/redis.js"
 
 process.on('uncaughtException', (error: Error) => {
     console.log("Uncaught Exception: ", error)
@@ -20,7 +20,7 @@ const startServer = async () => {
     try {
 
         await connectDB()
-        // await redisClient.connect()
+        await redisClient.connect()
         const app = createApp()
         const httpServer = createServer(app)
 
@@ -41,7 +41,7 @@ const startServer = async () => {
             console.log('SIGTERM received, shutting down gracefully')
             httpServer.close(async () => {
                 await disconnectDB()
-                // await redisClient.disconnect()
+                await redisClient.disconnect()
                 console.log("Server closed")
                 process.exit(0)
             })
