@@ -97,9 +97,9 @@ describe('Auth Endpoints', () => {
             .expect(200)
 
             expect(res.body.success).toBe(true)
-            expect(res.body.data.user.emai).toBe('login@example.com')
+            expect(res.body.data.user.email).toBe('login@example.com')
             expect(res.body.data.token).toBeDefined()
-            expect(res.headers['set-cookie']).toBeDefined
+            expect(res.headers['set-cookie']).toBeDefined()
         })
 
         it('should reject invalid password', async () => {
