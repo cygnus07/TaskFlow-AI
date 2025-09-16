@@ -1,4 +1,3 @@
-import request from 'supertest'
 import { createApp } from '../app.js'
 import { 
   createTestTenant, 
@@ -58,7 +57,7 @@ describe('Project Endpoints', () => {
       await createTestProject(tenant._id, user._id, { name: 'Project 2' })
       
       const otherUser = await createTestUser(tenant._id)
-      await createTestProject(tenant._id, otherUser._id, { name: 'Other Project' })
+      await createTestProject(tenant._id, otherUser._id.toString(), { name: 'Other Project' })
     })
 
     it('should return only projects where user is member', async () => {
