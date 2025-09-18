@@ -1,4 +1,4 @@
-import express, {Application, Request, Response, NextFunction} from 'express'
+import express, {Application, Request, Response} from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import {config} from './config/index.js'
@@ -47,15 +47,15 @@ export const createApp = (): Application => {
     // api routes
     app.use('/api', routes)
 
-    app.use((err: Error, _req: Request, res: Response, _next: NextFunction ) => {
-        console.error(err.stack)
-        res.status(500).json({
-            status: 'error',
-            message: config.env === 'production'
-            ? "Internal Server Error" 
-            : err.message
-        })
-    })
+    // app.use((err: Error, _req: Request, res: Response, _next: NextFunction ) => {
+    //     console.error(err.stack)
+    //     res.status(500).json({
+    //         status: 'error',
+    //         message: config.env === 'production'
+    //         ? "Internal Server Error" 
+    //         : err.message
+    //     })
+    // })
 
     // global error handler
     app.use(errorHandler)

@@ -10,6 +10,13 @@ export default {
       'ts-jest',
       {
         useESM: true,
+        tsconfig: {
+          module: 'ES2022',
+          target: 'ES2022',
+          moduleResolution: 'node',
+          allowJs: true,
+          esModuleInterop: true,
+        }
       },
     ],
   },
@@ -27,12 +34,10 @@ export default {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  testTimeout: 60000, // Increased timeout for database operations
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
-  // Add this to handle async operations better
-  maxWorkers: 1, // Run tests sequentially to avoid database conflicts
-};
+  testTimeout: 60000,
+  maxWorkers: 1,
+  // Remove the deprecated globals section
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  // Ensure proper module resolution
+  resolver: undefined,
+}

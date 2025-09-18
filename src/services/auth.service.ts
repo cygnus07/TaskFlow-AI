@@ -107,7 +107,7 @@ export class AuthService {
         }
 
         if(!user.isActive){
-            throw new AuthenticationError('Account is deacctivated')
+            throw new AuthenticationError('Account is deactivated')
         }
 
         const tenant = await Tenant.findById(user.tenantId)

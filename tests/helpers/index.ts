@@ -4,6 +4,7 @@ import { User } from '../../src/models/user.model.js'
 import { Project } from '../../src/models/project.model.js'
 import { Task } from '../../src/models/task.model.js'
 import jwt from 'jsonwebtoken'
+import supertest from 'supertest'
 
 export const createTestTenant = async (data?: Partial<any>) => {
     return await Tenant.create({
@@ -59,7 +60,6 @@ export const createTestTask = async(
     })
 }
 
-
 export const generateAuthToken = (user: any, tenant: any) => {
     return jwt.sign(
         {
@@ -75,10 +75,24 @@ export const generateAuthToken = (user: any, tenant: any) => {
 
 export const createAuthenticatedRequest = (app: any, user: any, tenant: any) => {
     const token = generateAuthToken(user, tenant)
-    const agent = require('supertest').agent(app)
-
-    agent.set('Authorization', `Bearer ${token}`)
-    agent.auth = {user, tenant, token}
-
+    const agent = supertest.agent(app)
+    
+    // Set default authorization header for all requests from this agent
+    agent.auth = (token: string, _options: any) => {
+        return agent.set('Authorization', `Bearer ${token}`)
+    }
+    
+    // Store auth info on the agent for reference
+    (agent as any).authInfo = { user, tenant, token }
+    
+    // Override the agent's methods to automatically include the auth header
+    const methods = ['get', 'post', 'put', 'patch', 'delete'] as const
+    methods.forEach(method => {
+        const original = (agent as any)[method].bind(agent)
+        ;(agent as any)[method] = (url: string) => {
+            return original(url).set('Authorization', `Bearer ${token}`)
+        }
+    })
+    
     return agent
 }

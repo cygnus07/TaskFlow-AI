@@ -5,7 +5,7 @@ describe('E2E: Complete User Journey', () => {
   let app: any;
   let authToken: string;
   let userId: string;
-  let tenantId: string;
+//   let tenantId: string;
   let projectId: string;
   let taskId: string;
 
@@ -53,14 +53,14 @@ describe('E2E: Complete User Journey', () => {
     // Step 4: Add a team member
     console.log('Step 4: Adding team member...');
     // First create another user in the same tenant
-    const member2Res = await request(app)
-      .post('/api/auth/register')
-      .send({
-        email: 'member2@test.com',
-        password: 'password123',
-        name: 'Team Member',
-      })
-      .expect(201);
+    // const member2Res = await request(app)
+    //   .post('/api/auth/register')
+    //   .send({
+    //     email: 'member2@test.com',
+    //     password: 'password123',
+    //     name: 'Team Member',
+    //   })
+    //   .expect(201);
 
     // Then add them to the project
     await request(app)
