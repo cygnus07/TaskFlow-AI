@@ -34,6 +34,7 @@ export class TaskController {
                 throw new ValidationError('Title is required')
             }
 
+
             const task = await TaskService.create({
                 projectId,
                 parentTaskId,
@@ -49,7 +50,6 @@ export class TaskController {
             req.user!._id.toString(),
             req.tenantId!
         )
-
         res.status(201).json({
             success: true,
             data: { task },
@@ -308,14 +308,14 @@ export class TaskController {
 
             // send the success response
             const { id }= req.params
-            await TaskService.findById(
+            const parentTask = await TaskService.findById(
                 id,
                 req.user!._id.toString(),
                 req.tenantId!
             )
 
             const subtasks = await TaskService.findByProject(
-                req.params.projectId || '',
+                parentTask.projectId.toString(),
                 req.user!._id.toString(),
                 req.tenantId!,
                 { parentTaskId: id}

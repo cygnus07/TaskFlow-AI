@@ -1,7 +1,6 @@
 import { model, Schema, Types } from "mongoose";
 import { addTenantIsolation, IBaseDocument } from "./base.model.js";
 
-
 export interface ITask extends IBaseDocument{
     projectId: Types.ObjectId
     parentTaskId?: Types.ObjectId
@@ -15,7 +14,7 @@ export interface ITask extends IBaseDocument{
     estimatedHours?: number
     actualHours?: number
     assignees: Types.ObjectId[]
-    dependecies: {
+    dependencies: {
         taskId: Types.ObjectId
         type: 'blocks' | 'blocked-by'
     }[]
@@ -44,7 +43,6 @@ export interface ITask extends IBaseDocument{
         complexityScore?: number
         lastAnalyzedAt?: Date
     }
-
 }
 
 interface TaskDependency {
@@ -106,15 +104,14 @@ const taskSchema = new Schema<ITask>({
     },
     actualHours: {
         type: Number,
-        min: [0, 'Actual NUmbers cannot be negative'],
+        min: [0, 'Actual hours cannot be negative'],
         default: 0
     },
     assignees: [{
         type: Schema.Types.ObjectId,
         ref: 'User',
-
     }],
-    dependecies: [{
+    dependencies: [{
         taskId: {
             type: Schema.Types.ObjectId,
             ref: 'Task',
@@ -142,9 +139,7 @@ const taskSchema = new Schema<ITask>({
             type: Date,
             default: Date.now
         }
-
     }],
-
     comments: [{
         user: {
             type: Schema.Types.ObjectId,
@@ -177,7 +172,6 @@ const taskSchema = new Schema<ITask>({
             default: Date.now
         }
     }],
-
     aiMetaData: {
         suggestedPriority: String,
         suggestedDueDate: Date,
@@ -185,73 +179,73 @@ const taskSchema = new Schema<ITask>({
         complexityScore: Number,
         lastAnalyzedAt: Date
     }
-
-
-
 })
 
 addTenantIsolation(taskSchema)
 
-// find all tasks filtered by status
+// Indexes for performance optimization
 taskSchema.index({ projectId: 1, status: 1}) 
-// find all tasks assigned to a user with a status
-taskSchema.index({ assignees:1 , status: 1})
-// find overdue or upcoming tasks quickly
+taskSchema.index({ assignees: 1, status: 1})
 taskSchema.index({ dueDate: 1, status: 1 })
-// find tasks that depend on a given task
 taskSchema.index({ 'dependencies.taskId': 1})
-// filter tasks by tags
 taskSchema.index({ tags: 1})
-
 taskSchema.index({ projectId: 1, parentTaskId: 1, status: 1})
 
+// Pre-save middleware with proper user context handling
 taskSchema.pre('save', function(next) {
     if(this.isModified('status')){
         if(this.status === 'done' && !this.completedAt){
             this.completedAt = new Date()
-        }else{
+        } else if(this.status !== 'done') {
             this.completedAt = undefined
         }
     
-        this.activityLog.push({
-            user: this.assignees[0],
-            action: 'status_changed',
-            details: {
-                from: this.get('status'),
-                to: this.status
-            },
-            timestamp: new Date()
-        })
+        // Only add activity log if we have a valid user context
+        // This should be set from the service layer before saving using task._modifiedBy
+        if((this as any)._modifiedBy) {
+            this.activityLog.push({
+                user: (this as any)._modifiedBy,
+                action: 'status_changed',
+                details: {
+                    from: this.get('status'),
+                    to: this.status
+                },
+                timestamp: new Date()
+            })
+        }
     }
     
-
-
-    
-
     next()
 })
 
+// Virtual for subtasks
 taskSchema.virtual('subtasks', {
     ref: 'Task',
     localField: '_id',
     foreignField: 'parentTaskId'
 })
 
-taskSchema.methods.canStart = async function() : Promise<boolean> {
+// Instance method to check if task can start (no blocking dependencies)
+taskSchema.methods.canStart = async function(): Promise<boolean> {
     const blockingDeps = await this.model('Task').find({
-        _id: { $in: (this.dependecies as TaskDependency[]).filter(d => d.type === 'blocked-by').map(d => d.taskId)},
-        status: {$ne: 'done'},
+        _id: { 
+            $in: (this.dependencies as TaskDependency[])
+                .filter(d => d.type === 'blocked-by')
+                .map(d => d.taskId)
+        },
+        status: { $ne: 'done' },
     })
 
-    return blockingDeps === 0
+    return blockingDeps.length === 0
 }
 
-taskSchema.methods.getAllSubtasks = async function() : Promise<ITask[]> {
-    const subtasks = await this.model('Task').find({ parentTaskId: this._id})
+// Instance method to get all subtasks recursively
+taskSchema.methods.getAllSubtasks = async function(): Promise<ITask[]> {
+    const subtasks = await this.model('Task').find({ parentTaskId: this._id })
     const allSubtasks = [...subtasks]
 
     for(const subtask of subtasks){
-        const nestedSubtasks= await subtask.getAllsubTasks()
+        const nestedSubtasks = await subtask.getAllSubtasks()
         allSubtasks.push(...nestedSubtasks)
     }
 

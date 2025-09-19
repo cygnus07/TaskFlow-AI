@@ -70,7 +70,7 @@ export class AIService {
             description: task.description,
             currentPriority: task.priority,
             dueDate: task.dueDate,
-            assignees: task.dependecies.length,
+            assignees: task.dependencies.length,
             subtasks: tasks.filter(t => t.parentTaskId?.toString() === String(task._id)).length,
             status: task.status,
             tags: task.tags,
@@ -181,7 +181,7 @@ export class AIService {
             title: task.title,
             estimatedHours: task.estimatedHours,
             priority: task.priority,
-            dependencies: task.dependecies.map(d => d.taskId.toString()),
+            dependencies: task.dependencies.map(d => d.taskId.toString()),
             currentAssignees: task.assignees.map(a => a.toString()),
             status: task.status,
         }))
@@ -406,7 +406,7 @@ export class AIService {
             t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'done'
         )
         const blockedTasks = tasks.filter( t => 
-            t.dependecies.some( d => d.type === 'blocked-by')
+            t.dependencies.some( d => d.type === 'blocked-by')
         )
 
         const projectData = {
