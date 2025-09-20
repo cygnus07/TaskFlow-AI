@@ -17,6 +17,8 @@ export class TaskController {
             // return success response with 201 code
             // send the task data 
 
+            // console.log(req.user)
+
             const { projectId } = req.params
             const {
                 parentTaskId,

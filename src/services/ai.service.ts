@@ -1,6 +1,6 @@
 import { config } from '../config/index.js'
 import OpenAI from 'openai'
-import { AppError } from '../utils/errors.js'
+import { AppError, AuthorizationError } from '../utils/errors.js'
 import { ITask } from '../models/task.model.js'
 import { IProject } from '../models/project.model.js'
 
@@ -33,7 +33,7 @@ export class AIService {
         // return the client instance
 
         if(!config.ai.enabled || !config.ai.openaiApiKey){
-            throw new AppError('AI features are not enabled', 400)
+            throw new AuthorizationError('AI features are not enabled')
         }
         if(!this.openai){
             this.openai = new OpenAI({

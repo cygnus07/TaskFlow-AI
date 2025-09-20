@@ -6,6 +6,7 @@ import { TaskService } from "../services/task.service.js";
 import { AIService } from "../services/ai.service.js";
 import { Task } from "../models/task.model.js";
 import { User } from "../models/user.model.js";
+import { config } from '../config/index.js'
 
 
 export class AIController {
@@ -23,6 +24,10 @@ export class AIController {
             // update each task with ai metadata
             // store the ai suggestions
             // return the response
+
+            if (!config.ai.enabled || !config.ai.openaiApiKey) {
+                throw new AuthorizationError('AI features are not enabled')
+            }
 
             const { projectId } = req.params
             const project = await ProjectService.findById(
@@ -119,10 +124,15 @@ export class AIController {
         // add activity log entries
 
         // return response
+        
 
         try {
             const { projectId } = req.params
             const { applySchedule = false} = req.body // false by defaullt
+
+            if (!config.ai.enabled || !config.ai.openaiApiKey) {
+                throw new AuthorizationError('AI features are not enabled')
+            }
             
             const project = await ProjectService.findById(
                 projectId,
@@ -225,7 +235,13 @@ export class AIController {
         // call suggestNextTasks with task, project info
         // return the response
 
+       
+
         try {
+
+             if (!config.ai.enabled || !config.ai.openaiApiKey) {
+                throw new AuthorizationError('AI features are not enabled')
+            }
             const { taskId } = req.params
             const completedTask = await TaskService.findById(
                 taskId,
@@ -282,7 +298,13 @@ export class AIController {
         // store the anlaysis result in project metaddat
         // return response
 
+        
         try {
+
+            if (!config.ai.enabled || !config.ai.openaiApiKey) {
+                throw new AuthorizationError('AI features are not enabled')
+            }
+
             const {projectId} = req.params
             const project = await ProjectService.findById(
                 projectId,
@@ -345,7 +367,13 @@ export class AIController {
         // run all optimizations in parallel using Promise.all
         // return response with project id
 
+        
+
         try {
+
+            if (!config.ai.enabled || !config.ai.openaiApiKey) {
+                throw new AuthorizationError('AI features are not enabled')
+            }
             const {projectId} = req.params
             const { 
                 prioritize = true,
