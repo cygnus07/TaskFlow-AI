@@ -61,38 +61,32 @@ export const createTestTask = async(
 }
 
 export const generateAuthToken = (user: any, tenant: any) => {
-    return jwt.sign(
-        {
-            userId: user._id.toString(),
-            tenantId: tenant._id.toString(),
-            email: user.email,
-            role: user.role,
-        },
-        process.env.JWT_SECRET!,
-        { expiresIn: '1d'} 
-    ) 
+      const payload = {
+        userId: user._id.toString(),
+        tenantId: tenant._id.toString(),
+        email: user.email,
+        role: user.role,
+    };
+    
+    console.log('🔍 Generating token with payload:', payload);
+    console.log('🔍 JWT_SECRET exists:', !!process.env.JWT_SECRET);
+    
+    const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1d' });
+    
+    console.log('🔍 Generated token:', token.substring(0, 50) + '...');
+    return token;
 }
 
 export const createAuthenticatedRequest = (app: any, user: any, tenant: any) => {
     const token = generateAuthToken(user, tenant)
-    const agent = supertest.agent(app)
     
-    // Set default authorization header for all requests from this agent
-    agent.auth = (token: string, _options: any) => {
-        return agent.set('Authorization', `Bearer ${token}`)
+    return {
+        get: (path: string) => supertest(app).get(path).set('Authorization', `Bearer ${token}`),
+        post: (path: string) => supertest(app).post(path).set('Authorization', `Bearer ${token}`),
+        put: (path: string) => supertest(app).put(path).set('Authorization', `Bearer ${token}`),
+        patch: (path: string) => supertest(app).patch(path).set('Authorization', `Bearer ${token}`),
+        delete: (path: string) => supertest(app).delete(path).set('Authorization', `Bearer ${token}`),
+        // Store auth info for reference
+        authInfo: { user, tenant, token }
     }
-    
-    // Store auth info on the agent for reference
-    (agent as any).authInfo = { user, tenant, token }
-    
-    // Override the agent's methods to automatically include the auth header
-    const methods = ['get', 'post', 'put', 'patch', 'delete'] as const
-    methods.forEach(method => {
-        const original = (agent as any)[method].bind(agent)
-        ;(agent as any)[method] = (url: string) => {
-            return original(url).set('Authorization', `Bearer ${token}`)
-        }
-    })
-    
-    return agent
 }
