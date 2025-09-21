@@ -24,7 +24,8 @@ const startServer = async () => {
         const app = createApp()
         const httpServer = createServer(app)
 
-        SocketService.initialize(httpServer)
+       const io = SocketService.initialize(httpServer)
+         console.log('✅ Socket.IO initialized:', !!io) 
 
         httpServer.listen(config.port, "0.0.0.0", () => {
         console.log(`
