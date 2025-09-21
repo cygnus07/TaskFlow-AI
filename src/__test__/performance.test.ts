@@ -9,7 +9,7 @@ import {
   createTestUser, 
   createTestProject,
   createTestTask
-} from '../../tests/helpers/index.js';
+} from '../tests/helpers/index.js';
 
 describe('Performance and Caching', () => {
   let app: any;

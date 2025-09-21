@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { createApp } from '../src/app.js';
+import { createApp } from '../app.js';
 
 describe('E2E: Complete User Journey', () => {
   let app: any;

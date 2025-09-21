@@ -5,7 +5,7 @@ import { Tenant } from "../models/tenant.model.js"
 import { User } from "../models/user.model.js"
 import { Project } from "../models/project.model.js"
 import { Task } from "../models/task.model.js"
-import { createTestTenant, createTestUser, createTestProject, createTestTask } from '../../tests/helpers/index.js'
+import { createTestTenant, createTestUser, createTestProject, createTestTask } from '../tests/helpers/index.js'
 
 describe('Task Endpoints', () => {
   let app: any

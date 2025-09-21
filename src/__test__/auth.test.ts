@@ -2,7 +2,7 @@ import { createApp } from "../app.js"
 import request from 'supertest'
 import { Tenant } from "../models/tenant.model.js"
 import { User } from "../models/user.model.js"
-import { createTestTenant, createTestUser } from '../../tests/helpers/index.js'
+import { createTestTenant, createTestUser } from '../tests/helpers/index.js'
 
 
 

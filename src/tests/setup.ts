@@ -2,7 +2,7 @@ import { jest, beforeAll, afterAll, afterEach } from '@jest/globals';
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { RedisMemoryServer } from "redis-memory-server";
-import { redisClient } from '../src/config/redis.js';
+import { redisClient } from '../config/redis.js';
 
 let mongoServer: MongoMemoryServer;
 let redisServer: RedisMemoryServer;

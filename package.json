@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon --watch src --exec node --loader ts-node/esm src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "npm run build && node dist/server.js",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
@@ -54,7 +54,6 @@
     "mongodb-memory-server": "^10.2.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
-    "redis-memory-server": "^0.13.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.3",
     "ts-node": "^10.9.2",

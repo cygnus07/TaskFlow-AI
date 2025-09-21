@@ -1,8 +1,8 @@
-import { Tenant } from '../../src/models/tenant.model.js'
+import { Tenant } from '../../models/tenant.model.js'
 import { faker } from '@faker-js/faker'
-import { User } from '../../src/models/user.model.js'
-import { Project } from '../../src/models/project.model.js'
-import { Task } from '../../src/models/task.model.js'
+import { User } from '../../models/user.model.js'
+import { Project } from '../../models/project.model.js'
+import { Task } from '../../models/task.model.js'
 import jwt from 'jsonwebtoken'
 import supertest from 'supertest'
 

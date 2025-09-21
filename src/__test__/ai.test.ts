@@ -11,7 +11,7 @@ import {
   createTestUser, 
   createTestProject,
   createTestTask
-} from '../../tests/helpers/index.js'
+} from '../tests/helpers/index.js'
 
 describe('AI Service Integration Tests', () => {
   let app: any

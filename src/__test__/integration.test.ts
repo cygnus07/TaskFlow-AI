@@ -6,7 +6,7 @@ import { Project } from "../models/project.model.js"
 import { 
   createTestTenant, 
   createTestUser
-} from '../../tests/helpers/index.js'
+} from '../tests/helpers/index.js'
 
 describe('Integration Tests', () => {
   let app: any

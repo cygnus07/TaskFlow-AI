@@ -3,7 +3,7 @@ import request from 'supertest'
 import { Tenant } from "../models/tenant.model.js"
 import { User } from "../models/user.model.js"
 import { Project } from "../models/project.model.js"
-import { createTestTenant, createTestUser, createTestProject } from '../../tests/helpers/index.js'
+import { createTestTenant, createTestUser, createTestProject } from '../tests/helpers/index.js'
 
 describe('Project Endpoints', () => {
     let app: any
