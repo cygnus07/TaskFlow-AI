@@ -12,7 +12,9 @@ const envSchema = z.object({
     OPENAI_API_KEY: z.string().optional(),
     OPENAI_MODEL: z.string().default('gpt-4-turbo-preview'),
     AI_FEATURES_ENABLED: z.string().transform(val => val === 'true').default('false'),
-    REDIS_URL: z.string().default('redis://localhost:6379'),
+   REDIS_URL: z.string()
+        .regex(/^rediss?:\/\//, 'Redis URL must start with redis:// or rediss://')
+        .default('redis://localhost:6379'),
     CACHE_TTL: z.coerce.number().default(3600)
 })
 

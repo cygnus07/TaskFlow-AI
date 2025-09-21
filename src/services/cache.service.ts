@@ -3,7 +3,16 @@ import { redisClient } from "../config/redis.js"
 
 
 export class CacheService {
-    private static prefix = 'taskflow'
+    private static prefix = 'taskflow:'
+
+     private static isRedisAvailable(): boolean {
+        try {
+            redisClient.getClient()
+            return true
+        } catch {
+            return false
+        }
+    }
 
     static keys = {
         user: (userId: string) => `${this.prefix}user:${userId}`,
@@ -24,26 +33,39 @@ export class CacheService {
         // parse the json string back to object
         // return it with right type
 
+        if (!this.isRedisAvailable()) {
+            console.log('Redis not available, skipping cache get')
+            return null
+        }
+
         try {
             const client = redisClient.getClient()
             const data = await client.get(key)
-
+            
             if(!data) return null
             return JSON.parse(data) as T
         } catch (error) {
-            console.error('Cache get error: ', error)
+            console.error('Cache get error:', error)
             return null
         }
     }   
 
     static async set(key: string, value: any, ttl?: number): Promise<void> {
+
+        if (!this.isRedisAvailable()) {
+            console.log('Redis not available, skipping cache set')
+            return
+        }
+
         try {
             const client = redisClient.getClient()
             const serialized = JSON.stringify(value)
 
-            if(ttl || config.redis.ttl){
-                await client.setex(key,ttl || config.redis.ttl, serialized)
-            } else{
+            const effectiveTtl = ttl || config.redis.ttl
+            
+            if(effectiveTtl) {
+                await client.setex(key, effectiveTtl, serialized)
+            } else {
                 await client.set(key, serialized)
             }
         } catch (error) {
@@ -65,11 +87,20 @@ export class CacheService {
     }
 
     static async deletePattern(pattern: string): Promise<void> {
+
+                if (!this.isRedisAvailable()) return
+
         try {
             const client = redisClient.getClient()
             const keys = await client.keys(`${this.prefix}${pattern}`)
 
-            if(keys.length >0) await client.del(...keys)
+             if(keys.length > 0) {
+                const batchSize = 100
+                for(let i = 0; i < keys.length; i += batchSize) {
+                    const batch = keys.slice(i, i + batchSize)
+                    await client.del(...batch)
+                }
+            }
         } catch (error) {
             console.error('Cache delete pattern error:', error)
         }

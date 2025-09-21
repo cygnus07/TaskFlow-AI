@@ -1,79 +1,76 @@
 import Redis from 'ioredis'
 import { config } from './index.js'
 
-
 class RedisClient {
     private client: Redis | null = null
     private subscriber: Redis | null = null
-    private pubisher: Redis | null =null
+    private publisher: Redis | null = null
     private isConnected = false
 
     async connect(): Promise<void> {
-        // if already connected, return
-
-        // create main redis client with connection url and retry config
-        // set reasonalble retry limits 
-        
-        // create separate clients for pub/sub ops
-        // pub/sub need dedicated connections that dont interfere with regular commands
-
-        // wire up event handlers for connection status
-        // log sucess and errors
-        // test the connection with a ping 
         if(this.isConnected) return
 
         try {
-            this.client = new Redis(config.redis.url, {
+            // Upstash-optimized configuration
+            const redisOptions = {
                 maxRetriesPerRequest: 3,
-                retryStrategy: (times) => {
+                retryStrategy: (times: number) => {
                     const delay = Math.min(times * 50, 2000)
                     return delay
-                }
-            })
+                },
+                // Important for Upstash
+                enableOfflineQueue: false,
+                // Upstash connections auto-close after inactivity
+                keepAlive: 10000,
+                // Add connection timeout
+                connectTimeout: 10000,
+                // Enable auto-pipelining for better performance
+                enableAutoPipelining: true,
+            }
 
-            this.subscriber = new Redis(config.redis.url)
-            this.pubisher = new Redis(config.redis.url)
+            this.client = new Redis(config.redis.url, redisOptions)
+            this.subscriber = new Redis(config.redis.url, redisOptions)
+            this.publisher = new Redis(config.redis.url, redisOptions)
 
             this.client.on('connect', () => {
-                console.log('REdis connected successfully')
+                console.log('✅ Redis connected to Upstash successfully')
                 this.isConnected = true
             })
 
             this.client.on('error', (err) => {
-                console.error('Redis connection error', err)
+                console.error('❌ Redis connection error:', err)
                 this.isConnected = false
             })
 
-            await this.client.ping()
+            this.client.on('close', () => {
+                console.log('Redis connection closed')
+                this.isConnected = false
+            })
 
+            // Test connection
+            await this.client.ping()
+            console.log('✅ Redis ping successful')
 
         } catch (error) {
-            console.error('Failed to connect to Redis: ', error)
-            throw error
+            console.error('Failed to connect to Redis:', error)
+            // Don't throw - allow app to run without cache
+            this.isConnected = false
         }
-
     }
 
+    // Rest of your methods remain the same...
     async disconnect(): Promise<void> {
-        // if not connected return
-        // close all three redis connections
-        // use quit() insted of disconnect for clean shutdown
-        // quit waits for pending commands to finish
-
-        // update our connection flag so other methods know we're offline
         if(!this.isConnected) return
         try {
             if (this.client) await this.client.quit()
             if(this.subscriber) await this.subscriber.quit()
-            if(this.pubisher) await this.pubisher.quit()
+            if(this.publisher) await this.publisher.quit()
 
             this.isConnected = false
             console.log('Redis disconnected')
         } catch (error) {
-            console.error('Error disconnection from Redis', error)
-
+            console.error('Error disconnecting from Redis', error)
         }
-
     }
 
     getClient(): Redis {
@@ -91,13 +88,16 @@ class RedisClient {
     }
 
     getPublisher(): Redis {
-        if(!this.pubisher){
+        if(!this.publisher){
             throw new Error('Redis publisher not initialized')
         }
-        return this.pubisher
+        return this.publisher
     }
 
-
+    // Add a helper to check connection status
+    isReady(): boolean {
+        return this.isConnected && this.client !== null
+    }
 }
 
 export const redisClient = new RedisClient()
