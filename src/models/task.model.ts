@@ -226,7 +226,7 @@ taskSchema.virtual('subtasks', {
 })
 
 // Instance method to check if task can start (no blocking dependencies)
-taskSchema.methods.canStart = async function(): Promise<boolean> {
+taskSchema.methods.canStart = async function(){
     const blockingDeps = await this.model('Task').find({
         _id: { 
             $in: (this.dependencies as TaskDependency[])

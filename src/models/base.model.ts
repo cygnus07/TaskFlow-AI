@@ -11,7 +11,7 @@ export interface IBaseDocument extends Document {
 // function to add tenant isolation to any schema
 export function addTenantIsolation<T extends Document>(
     schema: Schema<T>
-): void {
+){
     if (!('tenantId' in schema.paths)) {
         const tenantField: SchemaDefinition<IBaseDocument> = {
             tenantId: {

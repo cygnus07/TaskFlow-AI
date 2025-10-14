@@ -1,13 +1,5 @@
 import { Schema, model, Document} from 'mongoose'
 
-// first extent the ITenant from Document
-
-// create the tenant schema
-    // name, plan, isActive, maxUsers, currentUsers, settings, 
-
-// indexes for performance
-// method to check if tenant can add more users
-// export tenant model
 
 export interface ITenant extends Document {
     name: String
@@ -83,7 +75,7 @@ tenantSchema.index({name: 1})
 tenantSchema.index({ isActive: 1})
 tenantSchema.index({createdAt: -1})
 
-tenantSchema.methods.canAddUsers = function(count: number =1): boolean{
+tenantSchema.methods.canAddUsers = function(count = 1){
     if(this.maxUsers === -1) return true
     return (this.currentUsers + count) <= this.maxUsers
 }

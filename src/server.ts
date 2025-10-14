@@ -5,13 +5,13 @@ import { createServer } from "http"
 import { SocketService } from "./services/socket.service.js"
 import { redisClient } from "./config/redis.js"
 
-process.on('uncaughtException', (error: Error) => {
+process.on('uncaughtException', (error) => {
     console.log("Uncaught Exception: ", error)
     process.exit(1)
 })
 
 
-process.on('unhandledRejection', (error: Error ) => {
+process.on('unhandledRejection', (error) => {
     console.log("Unhandled Rejection: ", error)
     process.exit(1)
 })

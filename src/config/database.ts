@@ -3,7 +3,7 @@ import{ config} from '../config/index.js'
 
 let isConnected = false
 
-export const connectDB =async (): Promise<void> => {
+export const connectDB =async () => {
 
     // check if the db is already connected
     // if connected return and log that there is an existing connection
@@ -26,7 +26,7 @@ export const connectDB =async (): Promise<void> => {
         })
 
 
-        mongoose.connection.on('error', (error: Error) => {
+        mongoose.connection.on('error', (error) => {
             console.error("Mongodb connection error", error)
             isConnected=false
         })
@@ -44,7 +44,7 @@ export const connectDB =async (): Promise<void> => {
 }
 
 
-export const disconnectDB = async (): Promise<void> => {
+export const disconnectDB = async () => {
     // if isConnected is false, return
     // call the mongoose.disconnect method
     // set isConnected to false

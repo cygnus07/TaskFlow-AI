@@ -1,4 +1,4 @@
-import express, {Application, Request, Response} from 'express'
+import express, {Request, Response} from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import {config} from './config/index.js'
@@ -11,7 +11,7 @@ import { apiRateLimit } from './middleware/rateLimit.middleware.js'
 
 
 
-export const createApp = (): Application => {
+export const createApp = () => {
     const app = express()
     app.use(helmet())
     app.use(cors(config.cors))

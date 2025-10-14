@@ -139,7 +139,7 @@ projectSchema.pre('save', function(next) {
 })
 
 // to check if user is a member
-projectSchema.methods.isMember = function(userId: string) : boolean {
+projectSchema.methods.isMember = function(userId: string) {
 
     // console.log('Checking membership for:', userId);
     // console.log('Owner:', this.owner.toString());
@@ -158,7 +158,7 @@ projectSchema.methods.isMember = function(userId: string) : boolean {
 
 
 // method to get member role
-projectSchema.methods.getMemberRole = function(userId: string) : string | null {
+projectSchema.methods.getMemberRole = function(userId: string) {
     // console.log(this.owner._id.toString())
     if(this.owner._id.toString() === userId) return 'manager'
     const member = this.members.find((m: any) =>
