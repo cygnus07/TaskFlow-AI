@@ -26,7 +26,7 @@ export class AuthController {
             // call auth service for user and tenant creation
             // set token cookie and refreshToken cookie
             // send 201 json response
-
+            console.log(req.body)
             const { email, password, name, companyName} = req.body
             if(!email || !password || !name ){
                 throw new ValidationError('Email, password and name are required')

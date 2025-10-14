@@ -69,6 +69,7 @@ export class AuthService {
         )
         user.refreshTokens.push(refreshToken)
         await user.save()
+        console.log(user)
 
         return { user, token, refreshToken}
         } catch (error) {
