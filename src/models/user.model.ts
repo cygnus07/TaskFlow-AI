@@ -15,7 +15,7 @@ export interface IUser extends IBaseDocument {
     tenantAccess?: {
         tenantId: string
         role: string
-    }[] // for future multi-tenatn access
+    }[] 
 }
 
 const userSchema = new Schema<IUser> ({

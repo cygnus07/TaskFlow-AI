@@ -7,11 +7,7 @@ import { User } from "../models/user.model.js";
 
 
 
-export const authenticate = async (
-    req: AuthRequest,
-    _res: Response,
-    next: NextFunction
-): Promise<void> => {
+export const authenticate = async (req: AuthRequest, _res: Response, next: NextFunction) => {
     // get the token from the cookie or auth header
     // if token not present throw an error
     // verify the token using verify token utils
